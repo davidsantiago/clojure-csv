@@ -30,9 +30,11 @@
 	   remaining-chars (rest csv-chars)]
       (let [unquoted-comma? (fn [char] (and (= *delimiter* char)
 					    (not quoting?)))
+	    ;; Tests for LF and CR-LF. 
 	    lf? (fn [current-char] (= \newline current-char))
 	    crlf? (fn [current-char remaining-chars] (and (= \return current-char)
 							  (= \newline (first remaining-chars))))
+	    ;; field-with-remainder makes it easy to make the vector of return values.
 	    field-with-remainder (fn [remaining-chars] (vector (conj fields (apply str current-field))
 							       remaining-chars))]
       ;; If our current-char is nil, then we've reached the end of the seq and can return fields. 
@@ -70,19 +72,14 @@
 			(first remaining-chars) 
 			(rest remaining-chars)))))))
 	     
-(defn- gen-row-lazy 
-  "Returns a lazy sequence of the rows in the CSV passed in." 
-  [csv-remaining]
-  (lazy-seq 
-    (when (not (nil? csv-remaining))
-      (let [[row remainder] (parse-csv-line csv-remaining)]
-	(cons row (gen-row-lazy remainder))))))
-
 (defn parse-csv
   "Takes a CSV as a string or char seq and returns a seq of the parsed CSV rows, in 
    the form of a lazy sequence of vectors: a vector per row, a string for each cell." 
   [csv]
-  (gen-row-lazy csv))
+  (lazy-seq 
+    (when (not (nil? csv))
+      (let [[row remainder] (parse-csv-line csv)]
+	(cons row (parse-csv remainder))))))
 
 ;;
 ;; CSV Output
