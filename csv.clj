@@ -3,7 +3,7 @@
        :doc "Clojure-CSV is a small library for reading and writing CSV files. It
              correctly handles common CSV edge-cases, such as embedded newlines,
              commas, and quotes. The main functions are parse-csv and write-csv."}
-    com.davidsantiago.clojure-csv
+  com.davidsantiago.clojure-csv
   (:use clojure.contrib.test-is)
   (:require [clojure.contrib.str-utils2 :as s]))
 
@@ -118,7 +118,7 @@
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row." 
   [row]
-  (s/join "," (map quote-and-escape row)))
+  (s/join *delimiter* (map quote-and-escape row)))
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
