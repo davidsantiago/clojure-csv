@@ -28,11 +28,11 @@ Configuration options
 ---------------------
 You can modify some of the behavior of the parser by re-binding some vars. 
 
-### *delimiter* 
+### \*delimiter\* 
 By default, this is a comma. You can change this to another character, such as
 a tab, to read tab-delimited files. 
 
-### *end-of-line*
+### \*end-of-line\*
 By default, this is "\n". This value only affects the output from write-csv;
 parse-csv will always accept both \n and \r\n line-endings. 
 
