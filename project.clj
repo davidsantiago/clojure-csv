@@ -1,2 +1,5 @@
-(defproject clojure-csv "1.0"
-  :description "A simple library to read and write CSV files.")
+(defproject clojure-csv "1.1.0"
+  :description "A simple library to read and write CSV files."
+  :dependencies [[org.clojure/clojure "1.1.0"]
+		 [org.clojure/clojure-contrib "1.1.0"]]
+  :dev-dependencies [[swank-clojure "1.2.1"]])
