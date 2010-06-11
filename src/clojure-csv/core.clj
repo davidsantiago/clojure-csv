@@ -3,7 +3,7 @@
        :doc "Clojure-CSV is a small library for reading and writing CSV files.
 It correctly handles common CSV edge-cases, such as embedded newlines, commas,
 and quotes. The main functions are parse-csv and write-csv."}
-  clojure-csv.clojure-csv
+  clojure-csv.core
   (:use clojure.contrib.test-is)
   (:require [clojure.contrib.str-utils2 :as s]))
 
