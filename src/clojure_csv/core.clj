@@ -26,6 +26,16 @@ and quotes. The main functions are parse-csv and write-csv."}
 ;; CSV Input
 ;;
 
+;; Tests for LF and CR-LF.
+(defn- lf?
+  [current-char]
+  (= \newline current-char))
+
+(defn- crlf?
+  [current-char remaining-chars]
+  (and (= \return current-char)
+       (= \newline (first remaining-chars))))
+
 (defn- parse-csv-line
   "Takes a CSV-formatted string or char seq (or something that becomes a char
    seq when seq is applied) as input and returns a vector containing two values.
@@ -40,18 +50,13 @@ and quotes. The main functions are parse-csv and write-csv."}
 	   quoting? false     ;; Are we inside a quoted cell at this point?
 	   current-char (first csv-chars)
 	   remaining-chars (rest csv-chars)]
-      (let [unquoted-comma? (fn [char] (and (= *delimiter* char)
-					    (not quoting?)))
-	    ;; Tests for LF and CR-LF.
-	    lf? (fn [current-char] (= \newline current-char))
-	    crlf? (fn [current-char remaining-chars]
-		    (and (= \return current-char)
-			 (= \newline (first remaining-chars))))
-	    ;; field-with-remainder makes the vector of return values.
-	    field-with-remainder (fn [remaining-chars]
-				   (vector (persistent! (conj! fields
-						 (.toString current-field)))
-					   remaining-chars))]
+      (letfn [(unquoted-comma? [chr]
+			       (and (= *delimiter* chr)
+				    (not quoting?)))
+	      ;; field-with-remainder makes the vector of return values.
+	      (field-with-remainder [remaining-chars]
+		(vector (persistent! (conj! fields (.toString current-field)))
+			remaining-chars))]
       ;; If our current-char is nil, then we've reached the end of the seq
       ;; and can return fields.
       (cond (nil? current-char) (field-with-remainder nil)
@@ -108,7 +113,7 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- needs-quote?
   "Given a string (cell), determine whether it contains a character that
    requires this cell to be quoted."
-  [cell]
+  [#^String cell]
   (or (s/contains? cell ",")
       (s/contains? cell "\"")
       (s/contains? cell "\n")
@@ -139,9 +144,9 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a sequence of sequences of strings, returns a string of that table
    in CSV format, with all appropriate quoting and escaping."
   [table]
-    (loop [csv-string []
+    (loop [csv-string (StringBuffer.)
 	   quoted-table (map quote-and-escape-row table)]
       (if (empty? quoted-table)
-	(apply str csv-string)
-	(recur (conj csv-string (str (first quoted-table) *end-of-line*))
+	(.toString csv-string)
+	(recur (.append csv-string (str (first quoted-table) *end-of-line*))
 	       (rest quoted-table)))))
