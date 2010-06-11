@@ -35,8 +35,8 @@ and quotes. The main functions are parse-csv and write-csv."}
    string."
   [csv-line]
   (let [csv-chars (seq csv-line)]
-    (loop [fields []          ;; Going to return this as the vector of fields.
-	   current-field []   ;; Buffer for the cell we are working on.
+    (loop [fields (transient []) ;; Willreturn this as the vector of fields.
+	   current-field (StringBuffer.) ;; Buffer for cell we are working on.
 	   quoting? false     ;; Are we inside a quoted cell at this point?
 	   current-char (first csv-chars)
 	   remaining-chars (rest csv-chars)]
@@ -49,8 +49,8 @@ and quotes. The main functions are parse-csv and write-csv."}
 			 (= \newline (first remaining-chars))))
 	    ;; field-with-remainder makes the vector of return values.
 	    field-with-remainder (fn [remaining-chars]
-				   (vector (conj fields
-						 (apply str current-field))
+				   (vector (persistent! (conj! fields
+						 (.toString current-field)))
 					   remaining-chars))]
       ;; If our current-char is nil, then we've reached the end of the seq
       ;; and can return fields.
@@ -67,14 +67,15 @@ and quotes. The main functions are parse-csv and write-csv."}
 	    ;; If we see a comma and aren't in a quote, then end the current
 	    ;; field and add to fields.
 	    (unquoted-comma? current-char)
-	    (recur (conj fields (apply str current-field))
-		   [] quoting? (first remaining-chars) (rest remaining-chars))
+	    (recur (conj! fields (.toString current-field))
+		   (StringBuffer.) quoting?
+		   (first remaining-chars) (rest remaining-chars))
 	    (= \" current-char)
 	    (if (and (= \" (first remaining-chars))
 		     quoting?)
 	      ;; Saw "" so don't change quoting, just go to next character.
 	      (recur fields
-		     (conj current-field \") quoting?
+		     (.append current-field \") quoting?
 		     (first (rest remaining-chars))
 		     (rest (rest remaining-chars)))
 	      ;; Didn't see the second ", so change quoting state.
@@ -85,7 +86,7 @@ and quotes. The main functions are parse-csv and write-csv."}
 	    ;; In any other case, just add the character to the current field
 	    ;; and recur.
 	    true (recur fields
-			(conj current-field current-char)
+			(.append current-field current-char)
 			quoting?
 			(first remaining-chars)
 			(rest remaining-chars)))))))
