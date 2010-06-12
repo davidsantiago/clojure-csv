@@ -36,7 +36,7 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add 
 
-[clojure-csv/clojure-csv "1.0.0"]
+[clojure-csv/clojure-csv "1.1.0"]
 
 to your project.clj and download it from Clojars with
 
