@@ -32,6 +32,16 @@ Recent Updates
 * Support for more error checking with \*strict\* var.
 * Numerous bug fixes.
 
+Obtaining
+---------
+If you are using Leiningen, you can simply add 
+
+[clojure-csv/clojure-csv "1.0.0"]
+
+to your project.clj and download it from Clojars with
+
+lein deps
+
 Use
 ---
 There are two functions exposed to the user: 
