@@ -8,7 +8,27 @@ features:
   commas and double-quote characters). 
 * Unescaped newlines embedded in CSV fields are supported when 
   parsing. 
-* Reading is lazy. 
+* Reading is lazy.
+* More permissive than RFC 4180, although there are some optional strictness
+  checks. (Send me any bugs you find, or any correctness checks you think
+  should be performed.)
+
+This library aims to be as permissive as possible with respect to deviation
+from the standard, as long as the intention is clear. The only correctness
+checks made are those that cannot be made after parsing is done. For example,
+some people think it should be an error when lines in the CSV have a
+different number of fields -- you should check this yourself. However, it is
+not possible, after parsing, to tell if the input ended before the closing
+quote of a field; if you care, it will be signaled to you.
+
+Recent Updates
+--------------
+
+* Updated library to 1.1.0.
+* Significantly faster on parsing. There should be additional speed
+  improvements possible when Clojure 1.2 is released.
+* Support for more error checking with \*strict\* var.
+* Numerous bug fixes.
 
 Use
 ---
@@ -35,6 +55,11 @@ a tab, to read tab-delimited files.
 ### \*end-of-line\*
 By default, this is "\n". This value only affects the output from write-csv;
 parse-csv will always accept both \n and \r\n line-endings. 
+
+### \*strict\*
+By default, this is false. This value only affects parsing during parse-csv.
+It will raise an exception when either a double-quote is present in an
+unquoted field, or when the end of input is reached during a quoted field.
 
 License
 --------
