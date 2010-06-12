@@ -4,7 +4,6 @@
 It correctly handles common CSV edge-cases, such as embedded newlines, commas,
 and quotes. The main functions are parse-csv and write-csv."}
   clojure-csv.core
-  (:use clojure.contrib.test-is)
   (:require [clojure.contrib.str-utils2 :as s]))
 
 (set! *warn-on-reflection* true)
@@ -21,6 +20,13 @@ and quotes. The main functions are parse-csv and write-csv."}
      This setting is ignored for reading (\n and \r\n are both accepted).
      Default value: \"\\n\""}
      *end-of-line* "\n")
+
+(def
+ #^{:doc
+    "If this variable is true, the parser will throw an exception on invalid
+     input.
+     Default value: false"}
+     *strict* false)
 
 ;;
 ;; CSV Input
@@ -45,7 +51,7 @@ and quotes. The main functions are parse-csv and write-csv."}
    string."
   [csv-line]
   (let [csv-chars (seq csv-line)]
-    (loop [fields (transient []) ;; Willreturn this as the vector of fields.
+    (loop [fields (transient []) ;; Will return this as the vector of fields.
 	   current-field (StringBuffer.) ;; Buffer for cell we are working on.
 	   quoting? false     ;; Are we inside a quoted cell at this point?
 	   current-char (first csv-chars)
@@ -55,8 +61,11 @@ and quotes. The main functions are parse-csv and write-csv."}
 				    (not quoting?)))
 	      ;; field-with-remainder makes the vector of return values.
 	      (field-with-remainder [remaining-chars]
-		(vector (persistent! (conj! fields (.toString current-field)))
-			remaining-chars))]
+		(if (and (nil? remaining-chars) quoting? *strict*)
+		  (throw (Exception.
+			  "Reached end of input before end of quoted field."))
+		  (vector (persistent! (conj! fields (.toString current-field)))
+			  remaining-chars)))]
       ;; If our current-char is nil, then we've reached the end of the seq
       ;; and can return fields.
       (cond (nil? current-char) (field-with-remainder nil)
@@ -76,18 +85,26 @@ and quotes. The main functions are parse-csv and write-csv."}
 		   (StringBuffer.) quoting?
 		   (first remaining-chars) (rest remaining-chars))
 	    (= \" current-char)
-	    (if (and (= \" (first remaining-chars))
-		     quoting?)
-	      ;; Saw "" so don't change quoting, just go to next character.
-	      (recur fields
-		     (.append current-field \") quoting?
-		     (first (rest remaining-chars))
-		     (rest (rest remaining-chars)))
-	      ;; Didn't see the second ", so change quoting state.
-	      (recur fields
-		     current-field (not quoting?)
-		     (first remaining-chars)
-		     (rest remaining-chars)))
+	    (if (and (not (= 0 (.length current-field)))
+		     (not quoting?))
+	      (if *strict*
+		(throw (Exception. "Double quote present in unquoted field."))
+		(recur fields
+		       (.append current-field \") quoting?
+		       (first (rest remaining-chars))
+		       (rest (rest remaining-chars))))
+	      (if (and (= \" (first remaining-chars))
+		       quoting?)
+		;; Saw "" so don't change quoting, just go to next character.
+		(recur fields
+		       (.append current-field \") quoting?
+		       (first (rest remaining-chars))
+		       (rest (rest remaining-chars)))
+		;; Didn't see the second ", so change quoting state.
+		(recur fields
+		       current-field (not quoting?)
+		       (first remaining-chars)
+		       (rest remaining-chars))))
 	    ;; In any other case, just add the character to the current field
 	    ;; and recur.
 	    true (recur fields
@@ -96,15 +113,25 @@ and quotes. The main functions are parse-csv and write-csv."}
 			(first remaining-chars)
 			(rest remaining-chars)))))))
 
+(defn- parse-csv-with-bindings
+  "Because we do parsing lazily, we have to make special provisions for the
+   bindings in place at call-time to still be in place when things are
+   actually evaluated. This function makes that transparent to callers."
+  [csv bind-map]
+  (lazy-seq
+   (with-bindings bind-map
+     (when (not (nil? csv))
+       (let [[row remainder] (parse-csv-line csv)]
+	 (cons row (parse-csv-with-bindings remainder bind-map)))))))
+
 (defn parse-csv
   "Takes a CSV as a string or char seq and returns a seq of the parsed CSV rows,
    in the form of a lazy sequence of vectors: a vector per row, a string for
    each cell."
-  [csv]
-  (lazy-seq
-   (when (not (nil? csv))
-     (let [[row remainder] (parse-csv-line csv)]
-       (cons row (parse-csv remainder))))))
+  ([csv]
+     (parse-csv-with-bindings csv {#'*strict* *strict*
+				   #'*delimiter* *delimiter*
+				   #'*end-of-line* *end-of-line*})))
 
 ;;
 ;; CSV Output

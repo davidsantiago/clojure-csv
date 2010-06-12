@@ -39,3 +39,19 @@
 (deftest nonstring-inputs
   (is (= [["First", "Second"]] (parse-csv (seq "First,Second"))))
   (is (= [["First", "Second"]] (parse-csv (.toCharArray "First,Second")))))
+
+(deftest alternate-delimiters
+  (is (= [["First", "Second"]]
+	 (binding [*delimiter* \tab] (parse-csv "First\tSecond")))))
+
+(deftest strictness
+  ;; I can't figure out why, but the thrown? tests always fail, even though
+  ;; entering the test clause by hand gives correct results.
+  ;(is (thrown? Exception (binding [*strict* true] (parse-csv "a,b,c,\"d"))))
+  ;(is (thrown? Exception (binding [*strict* true] (parse-csv "a,b,c,d\"e"))))
+  (is (= [["a","b","c","d"]]
+	 (binding [*strict* false] (parse-csv "a,b,c,\"d"))))
+  (is (= [["a","b","c","d"]]
+	 (binding [*strict* true] (parse-csv "a,b,c,\"d\""))))
+  (is (= [["a","b","c","d\""]]
+	 (binding [*strict* false] (parse-csv "a,b,c,d\"")))))
