@@ -25,6 +25,8 @@ Recent Updates
 --------------
 
 * Updated library to 1.1.0.
+* Reorganized namespaces to fit better with my perception of Clojure standards.
+  Specifically, the main namespace is now clojure-csv.core.
 * Significantly faster on parsing. There should be additional speed
   improvements possible when Clojure 1.2 is released.
 * Support for more error checking with \*strict\* var.
@@ -60,6 +62,10 @@ parse-csv will always accept both \n and \r\n line-endings.
 By default, this is false. This value only affects parsing during parse-csv.
 It will raise an exception when either a double-quote is present in an
 unquoted field, or when the end of input is reached during a quoted field.
+
+Bugs
+----
+Please let me know of any problems you are having.
 
 License
 --------
