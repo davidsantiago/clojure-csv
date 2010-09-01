@@ -24,7 +24,9 @@ quote of a field; if you care, it will be signaled to you.
 Recent Updates
 --------------
 
-* Updated library to 1.1.0.
+* Updated library to 1.2.0.
+
+###Previously...
 * Reorganized namespaces to fit better with my perception of Clojure standards.
   Specifically, the main namespace is now clojure-csv.core.
 * Significantly faster on parsing. There should be additional speed
@@ -36,7 +38,7 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add 
 
-[clojure-csv/clojure-csv "1.1.0"]
+[clojure-csv/clojure-csv "1.2.0"]
 
 to your project.clj and download it from Clojars with 
 
