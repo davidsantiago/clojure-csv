@@ -6,7 +6,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   clojure-csv.core
   (:require [clojure.contrib.str-utils2 :as s]))
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 (def
  ^{:doc
