@@ -1,6 +1,6 @@
 (ns
-    #^{:author "David Santiago",
-       :doc "Clojure-CSV is a small library for reading and writing CSV files.
+    ^{:author "David Santiago",
+      :doc "Clojure-CSV is a small library for reading and writing CSV files.
 It correctly handles common CSV edge-cases, such as embedded newlines, commas,
 and quotes. The main functions are parse-csv and write-csv."}
   clojure-csv.core
@@ -9,24 +9,24 @@ and quotes. The main functions are parse-csv and write-csv."}
 (set! *warn-on-reflection* true)
 
 (def
- #^{:doc
-    "A character that contains the cell separator for each column in a row.
-     Default value: \\,"}
-     *delimiter* \,)
+ ^{:doc
+   "A character that contains the cell separator for each column in a row.
+    Default value: \\,"}
+    *delimiter* \,)
 
 (def
- #^{:doc
-    "A string containing the end-of-line character for writing CSV files.
-     This setting is ignored for reading (\n and \r\n are both accepted).
-     Default value: \"\\n\""}
-     *end-of-line* "\n")
+ ^{:doc
+   "A string containing the end-of-line character for writing CSV files.
+    This setting is ignored for reading (\n and \r\n are both accepted).
+    Default value: \"\\n\""}
+    *end-of-line* "\n")
 
 (def
- #^{:doc
-    "If this variable is true, the parser will throw an exception on invalid
-     input.
-     Default value: false"}
-     *strict* false)
+ ^{:doc
+   "If this variable is true, the parser will throw an exception on invalid
+    input.
+    Default value: false"}
+    *strict* false)
 
 ;;
 ;; CSV Input
@@ -140,7 +140,7 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- needs-quote?
   "Given a string (cell), determine whether it contains a character that
    requires this cell to be quoted."
-  [#^String cell]
+  [^String cell]
   (or (s/contains? cell ",")
       (s/contains? cell "\"")
       (s/contains? cell "\n")
