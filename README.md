@@ -24,7 +24,11 @@ quote of a field; if you care, it will be signaled to you.
 Recent Updates
 --------------
 
-* Updated library to 1.2.0.
+* Updated library to 1.2.2.  
+* Includes a bug fix to make the presence of a double-quote in an unquoted field
+  parse better in non-strict mode. Specifically, if a CSV field is not quoted 
+  but has \" characters, they are read as \" with no further processing. Does 
+  not start quoting.
 
 ###Previously...
 * Reorganized namespaces to fit better with my perception of Clojure standards.
@@ -38,11 +42,11 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add 
 
-[clojure-csv/clojure-csv "1.2.0"]
+[clojure-csv/clojure-csv "1.2.2"]
 
 to your project.clj and download it from Clojars with 
 
-lein deps
+cake deps
 
 Use
 ---

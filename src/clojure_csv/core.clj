@@ -87,12 +87,16 @@ and quotes. The main functions are parse-csv and write-csv."}
 	    (= \" current-char)
 	    (if (and (not (= 0 (.length current-field)))
 		     (not quoting?))
+	      ;; There's a double-quote present in an unquoted field, which we
+	      ;; can either signal or ignore completely, depending on *strict*.
+	      ;; Note that if we are not strict, we take the double-quote as a
+	      ;; literal character, and don't change quoting state.
 	      (if *strict*
 		(throw (Exception. "Double quote present in unquoted field."))
 		(recur fields
 		       (.append current-field \") quoting?
-		       (first (rest remaining-chars))
-		       (rest (rest remaining-chars))))
+		       (first remaining-chars)
+		       (rest remaining-chars)))
 	      (if (and (= \" (first remaining-chars))
 		       quoting?)
 		;; Saw "" so don't change quoting, just go to next character.

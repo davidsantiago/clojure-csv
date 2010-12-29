@@ -54,4 +54,7 @@
   (is (= [["a","b","c","d"]]
 	 (binding [*strict* true] (parse-csv "a,b,c,\"d\""))))
   (is (= [["a","b","c","d\""]]
-	 (binding [*strict* false] (parse-csv "a,b,c,d\"")))))
+	   (binding [*strict* false] (parse-csv "a,b,c,d\""))))
+  (is (= [["120030" "BLACK COD FILET MET VEL \"MSC\"" "KG" "0" "1"]]
+       (binding [*strict* false *delimiter* \;]
+	 (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1")))))
