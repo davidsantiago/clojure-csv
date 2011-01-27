@@ -145,7 +145,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a string (cell), determine whether it contains a character that
    requires this cell to be quoted."
   [^String cell]
-  (or (s/contains? cell ",")
+  (or (s/contains? cell (str *delimiter*))
       (s/contains? cell "\"")
       (s/contains? cell "\n")
       (s/contains? cell "\r\n")))
