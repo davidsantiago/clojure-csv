@@ -42,7 +42,13 @@
 
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
-         (binding [*delimiter* \tab] (parse-csv "First\tSecond")))))
+           (binding [*delimiter* \tab] (parse-csv "First\tSecond"))))
+  (is (= "First\tSecond\n"
+           (binding [*delimiter* \tab] (write-csv [["First", "Second"]]))))
+  (is (= "First\tSecond,Third\n"
+         (binding [*delimiter* \tab] (write-csv [["First", "Second,Third"]]))))
+  (is (= "First\t\"Second\tThird\"\n"
+         (binding [*delimiter* \tab] (write-csv [["First", "Second\tThird"]])))))
 
 (deftest strictness
   ;; I can't figure out why, but the thrown? tests always fail, even though
