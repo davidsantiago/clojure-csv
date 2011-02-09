@@ -29,6 +29,36 @@ and quotes. The main functions are parse-csv and write-csv."}
     *strict* false)
 
 ;;
+;; Adapt to char-seq
+;;
+(defmulti char-seq
+  "Adapt object to character seq, based on class. Pass-through for ISeq."
+  class)
+
+(defmethod char-seq java.lang.String [a-str] (seq a-str))
+
+(defmethod char-seq (Class/forName "[I") [arr] (map char arr))
+
+(defmethod char-seq (Class/forName "[B") [arr] (map char arr))
+
+(defmethod char-seq (Class/forName "[C") [arr] arr)
+
+(defmethod char-seq java.io.Reader [a-reader]
+  (letfn [(read-one []
+            (try
+              (let [^int c (.read a-reader)]
+                (when (not= -1 c)
+                  (cons (char c) (lazy-cat (read-one)))))
+              (catch java.io.EOFException eof nil)))]
+    (lazy-seq (read-one))))
+
+(defmethod char-seq clojure.lang.ISeq [se] se)
+
+(defmethod char-seq :default [_]
+  (throw (java.io.IOException. "Don't know how to proceed.")))
+
+
+;;
 ;; CSV Input
 ;;
 
