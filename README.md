@@ -24,11 +24,15 @@ quote of a field; if you care, it will be signaled to you.
 Recent Updates
 --------------
 
-* Updated library to 1.2.3.  
-* Includes a bug fix for a problem where a non-comma delimiter was causing
-  incorrect quoting on write.
+* Updated library to 1.2.4.  
+* Added the char-seq multimethod, which provides a variety of implementations
+  for easily creating the char seqs that parse-csv uses on input from various
+  similar objects. Big thanks to [Slawek Gwizdowski](https://github.com/i0cus)
+  for this contribution.
 
 ###Previously...
+* Includes a bug fix for a problem where a non-comma delimiter was causing
+  incorrect quoting on write.
 * Included a bug fix to make the presence of a double-quote in an unquoted field
   parse better in non-strict mode. Specifically, if a CSV field is not quoted 
   but has \" characters, they are read as \" with no further processing. Does 
@@ -44,7 +48,7 @@ Obtaining
 ---------
 If you are using Cake, you can simply add 
 
-[clojure-csv/clojure-csv "1.2.3"]
+[clojure-csv/clojure-csv "1.2.4"]
 
 to your project.clj and download it from Clojars with 
 
@@ -57,7 +61,9 @@ There are two functions exposed to the user:
 ### parse-csv
 Takes a CSV as a char sequence or string, and returns a lazy sequence of 
 vectors of strings; each vector corresponds to a row, and each string is 
-one field from that row. 
+one field from that row. Be careful to ensure that if you read lazily from
+a file or some other resource that it remains open when the sequence is
+consumed.
 
 ### write-csv
 Takes a sequence of sequences of strings, basically a table of strings, 
@@ -84,6 +90,10 @@ unquoted field, or when the end of input is reached during a quoted field.
 Bugs
 ----
 Please let me know of any problems you are having.
+
+Contributors
+------------
+ - [Slawek Gwizdowski](https://github.com/i0cus)
 
 License
 --------
