@@ -43,10 +43,10 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 (defmethod char-seq (Class/forName "[C") [arr] arr)
 
-(defmethod char-seq java.io.Reader [a-reader]
+(defmethod char-seq java.io.Reader [^java.io.Reader a-reader]
   (letfn [(read-one []
             (try
-              (let [^int c (.read a-reader)]
+              (let [c (int (.read a-reader))]
                 (when (not= -1 c)
                   (cons (char c) (lazy-cat (read-one)))))
               (catch java.io.EOFException eof nil)))]
