@@ -72,10 +72,6 @@
          (binding [*delimiter* \tab] (write-csv [["First", "Second\tThird"]])))))
 
 (deftest strictness
-  ;; I can't figure out why, but the thrown? tests always fail, even though
-  ;; entering the test clause by hand gives correct results.
-  ;; A: it's because you do not force evaluation without dorun, while
-  ;; at REPL you evaluate when you print out the result. :) -- SMG
   (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,\"d")))))
   (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,d\"e")))))
   (is (= [["a","b","c","d"]]
