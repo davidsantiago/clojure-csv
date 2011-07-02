@@ -4,29 +4,32 @@
 It correctly handles common CSV edge-cases, such as embedded newlines, commas,
 and quotes. The main functions are parse-csv and write-csv."}
   clojure-csv.core
-  (:require [clojure.contrib.str-utils2 :as s]))
+  (:require [clojure.string :as string]))
 
 ;(set! *warn-on-reflection* true)
 
 (def
- ^{:doc
-   "A character that contains the cell separator for each column in a row.
+  ^{:dynamic true
+    :doc
+    "A character that contains the cell separator for each column in a row.
     Default value: \\,"}
-    *delimiter* \,)
+  *delimiter* \,)
 
 (def
- ^{:doc
-   "A string containing the end-of-line character for writing CSV files.
+  ^{:dynamic true
+    :doc
+    "A string containing the end-of-line character for writing CSV files.
     This setting is ignored for reading (\n and \r\n are both accepted).
     Default value: \"\\n\""}
-    *end-of-line* "\n")
+  *end-of-line* "\n")
 
 (def
- ^{:doc
-   "If this variable is true, the parser will throw an exception on invalid
+  ^{:dynamic true
+    :doc
+    "If this variable is true, the parser will throw an exception on invalid
     input.
     Default value: false"}
-    *strict* false)
+  *strict* false)
 
 ;;
 ;; Adapt to char-seq
@@ -175,10 +178,10 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a string (cell), determine whether it contains a character that
    requires this cell to be quoted."
   [^String cell]
-  (or (s/contains? cell (str *delimiter*))
-      (s/contains? cell "\"")
-      (s/contains? cell "\n")
-      (s/contains? cell "\r\n")))
+  (or (.contains cell (str *delimiter*))
+      (.contains cell "\"")
+      (.contains cell "\n")
+      (.contains cell "\r\n")))
 
 (defn- escape
   "Given a character, returns the escaped version, whether that is the same
@@ -199,7 +202,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
   [row]
-  (s/join *delimiter* (map quote-and-escape row)))
+  (string/join *delimiter* (map quote-and-escape row)))
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
