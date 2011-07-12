@@ -1,29 +1,55 @@
+;; All commands are run twice, second run shown.
+
 (def csvfile (slurp "/Users/David/Downloads/cbp02st.txt"))
 (dotimes [_ 10] (time (dorun 50000 (parse-csv csvfile))))
 
-;;; Results from clojure-csv 1.0.0
-"Elapsed time: 4600.112 msecs"
-"Elapsed time: 4863.334 msecs"
-"Elapsed time: 4611.27 msecs"
-"Elapsed time: 4541.954 msecs"
-"Elapsed time: 4360.738 msecs"
-"Elapsed time: 4279.428 msecs"
-"Elapsed time: 4283.482 msecs"
-"Elapsed time: 3936.211 msecs"
-"Elapsed time: 3838.169 msecs"
-"Elapsed time: 3796.73 msecs"
+;;; Results from clojure-csv 1.2.4 (Clojure 1.2)
+"Elapsed time: 12245.029 msecs"
+"Elapsed time: 12857.944 msecs"
+"Elapsed time: 9884.861 msecs"
+"Elapsed time: 9775.208 msecs"
+"Elapsed time: 9949.54 msecs"
+"Elapsed time: 10030.859 msecs"
+"Elapsed time: 10105.303 msecs"
+"Elapsed time: 11122.508 msecs"
+"Elapsed time: 12247.907 msecs"
+"Elapsed time: 10413.019 msecs"
+
+;;; Results from clojure-csv 1.3.0-SNAPSHOT (Clojure 1.3.0-beta1)
+"Elapsed time: 6409.858 msecs"
+"Elapsed time: 6405.123 msecs"
+"Elapsed time: 6368.294 msecs"
+"Elapsed time: 6130.952 msecs"
+"Elapsed time: 6198.849 msecs"
+"Elapsed time: 6054.034 msecs"
+"Elapsed time: 5997.058 msecs"
+"Elapsed time: 6023.086 msecs"
+"Elapsed time: 5925.056 msecs"
+"Elapsed time: 5943.415 msecs"
 
 (def cbp02 (doall (take 5000 (parse-csv csvfile))))
 (dotimes [_ 10] (time (doall (write-csv cbp02))))
 
-;;; Results from clojure-csv 1.0.0
-"Elapsed time: 499.091 msecs"
-"Elapsed time: 389.241 msecs"
-"Elapsed time: 349.681 msecs"
-"Elapsed time: 268.284 msecs"
-"Elapsed time: 274.996 msecs"
-"Elapsed time: 308.593 msecs"
-"Elapsed time: 267.072 msecs"
-"Elapsed time: 267.436 msecs"
-"Elapsed time: 267.495 msecs"
-"Elapsed time: 266.011 msecs"
+;;; Results from clojure-csv 1.2.4 (Clojure 1.2)
+"Elapsed time: 679.032 msecs"
+"Elapsed time: 1055.923 msecs"
+"Elapsed time: 799.002 msecs"
+"Elapsed time: 801.592 msecs"
+"Elapsed time: 743.991 msecs"
+"Elapsed time: 871.658 msecs"
+"Elapsed time: 724.909 msecs"
+"Elapsed time: 851.222 msecs"
+"Elapsed time: 747.055 msecs"
+"Elapsed time: 759.579 msecs"
+
+;;; Results from clojure-csv 1.3.0-SNAPSHOT (Clojure 1.3.0-beta1)
+"Elapsed time: 253.029 msecs"
+"Elapsed time: 315.611 msecs"
+"Elapsed time: 396.087 msecs"
+"Elapsed time: 404.51 msecs"
+"Elapsed time: 401.931 msecs"
+"Elapsed time: 458.675 msecs"
+"Elapsed time: 414.312 msecs"
+"Elapsed time: 377.439 msecs"
+"Elapsed time: 362.493 msecs"
+"Elapsed time: 386.491 msecs"
