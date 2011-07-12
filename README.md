@@ -24,13 +24,17 @@ quote of a field; if you care, it will be signaled to you.
 Recent Updates
 --------------
 
+* Updated library to 1.3.0.
+* Now has support for Clojure 1.3.
+* Some speed improvements to take advantage of Clojure 1.3. Nearly twice as fast
+  in my tests.
+
+###Previously...
 * Updated library to 1.2.4.  
 * Added the char-seq multimethod, which provides a variety of implementations
   for easily creating the char seqs that parse-csv uses on input from various
   similar objects. Big thanks to [Slawek Gwizdowski](https://github.com/i0cus)
   for this contribution.
-
-###Previously...
 * Includes a bug fix for a problem where a non-comma delimiter was causing
   incorrect quoting on write.
 * Included a bug fix to make the presence of a double-quote in an unquoted field
@@ -48,7 +52,7 @@ Obtaining
 ---------
 If you are using Cake, you can simply add 
 
-[clojure-csv/clojure-csv "1.2.4"]
+[clojure-csv/clojure-csv "1.3.0"]
 
 to your project.clj and download it from Clojars with 
 
