@@ -60,7 +60,7 @@ cake deps
 
 Use
 ---
-There are two functions exposed to the user: 
+The **clojure-csv.core** namespace exposes two functions to the user: 
 
 ### parse-csv
 Takes a CSV as a char sequence or string, and returns a lazy sequence of 
