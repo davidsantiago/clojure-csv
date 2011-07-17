@@ -48,7 +48,7 @@ Obtaining
 ---------
 If you are using Cake, you can simply add 
 
-[clojure-csv/clojure-csv "1.2.4"]
+[clojure-csv/clojure-csv "1.3.0"]
 
 to your project.clj and download it from Clojars with 
 
