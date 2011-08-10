@@ -50,8 +50,10 @@
   (is (= "test1,test2\n" (write-csv [["test1" "test2"]])))
   (is (= "test1,test2\ntest3,test4\n"
          (write-csv [["test1" "test2"] ["test3" "test4"]])))
-  (is (= "quoted:,\"carriage\nreturn\"\n"
-         (write-csv [["quoted:" "carriage\nreturn"]])))
+  (is (= "quoted:,\"line\nfeed\"\n"
+         (write-csv [["quoted:" "line\nfeed"]])))
+  (is (= "quoted:,\"carriage\rreturn\"\n"
+         (write-csv [["quoted:" "carriage\rreturn"]])))
   (is (= "quoted:,\"embedded,comma\"\n"
          (write-csv [["quoted:" "embedded,comma"]])))
   (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
