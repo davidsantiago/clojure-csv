@@ -189,7 +189,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   (or (.contains cell (str *delimiter*))
       (.contains cell "\"")
       (.contains cell "\n")
-      (.contains cell "\r\n")))
+      (.contains cell "\r")))
 
 (defn- escape
   "Given a character, returns the escaped version, whether that is the same
