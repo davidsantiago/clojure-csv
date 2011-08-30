@@ -73,6 +73,20 @@
   (is (= "First\t\"Second\tThird\"\n"
          (binding [*delimiter* \tab] (write-csv [["First", "Second\tThird"]])))))
 
+(deftest alternate-quote-char
+  (is (= [["a", "b", "c"]]
+           (binding [*quote-char* \|] (parse-csv "a,|b|,c"))))
+  (is (= [["a", "b|c", "d"]]
+           (binding [*quote-char* \|] (parse-csv "a,|b||c|,d"))))
+  (is (= [["a", "b\"\nc", "d"]]
+           (binding [*quote-char* \|] (parse-csv "a,|b\"\nc|,d"))))
+  (is (= "a,|b||c|,d\n"
+         (binding [*quote-char* \|] (write-csv [["a", "b|c", "d"]]))))
+  (is (= "a,|b\nc|,d\n"
+         (binding [*quote-char* \|] (write-csv [["a", "b\nc", "d"]]))))
+  (is (= "a,b\"c,d\n"
+         (binding [*quote-char* \|] (write-csv [["a", "b\"c", "d"]])))))
+
 (deftest strictness
   (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,\"d")))))
   (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,d\"e")))))
