@@ -24,10 +24,13 @@ quote of a field; if you care, it will be signaled to you.
 Recent Updates
 --------------
 
-* Updated library to 1.3.1.
-* Fixed the quoting behavior on write, to properly quote any field with a CR. Thanks to Matt Lehman for this fix. 
+* Updated library to 1.3.2.
+* Added support for changing the character used to start and end quoted fields in
+  reading and writing.
 
 ###Previously...
+* Updated library to 1.3.1.
+* Fixed the quoting behavior on write, to properly quote any field with a CR. Thanks to Matt Lehman for this fix. 
 * Updated library to 1.3.0.
 * Now has support for Clojure 1.3.
 * Some speed improvements to take advantage of Clojure 1.3. Nearly twice as fast
@@ -54,7 +57,7 @@ Obtaining
 ---------
 If you are using Cake or Leiningen, you can simply add 
 
-    [clojure-csv/clojure-csv "1.3.1"]
+    [clojure-csv/clojure-csv "1.3.2"]
 
 to your project.clj and download it from Clojars with 
 
@@ -91,6 +94,10 @@ a tab, to read tab-delimited files.
 ### \*end-of-line\*
 By default, this is "\n". This value only affects the output from write-csv;
 parse-csv will always accept both \n and \r\n line-endings. 
+
+### \*quote-char\*
+By default, this is the double-quote, \". You can change this to another character,
+to read files that might not use the double-quote to start and end quoted fields.
 
 ### \*strict\*
 By default, this is false. This value only affects parsing during parse-csv.
