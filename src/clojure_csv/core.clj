@@ -26,6 +26,13 @@ and quotes. The main functions are parse-csv and write-csv."}
 (def
   ^{:dynamic true
     :doc
+    "A character that is used to begin and end a quoted cell.
+     Default value: \\\""}
+  *quote-char* \")
+
+(def
+  ^{:dynamic true
+    :doc
     "If this variable is true, the parser will throw an exception on invalid
     input.
     Default value: false"}
@@ -90,7 +97,8 @@ and quotes. The main functions are parse-csv and write-csv."}
   (let [csv-chars (seq csv-line)
         ;; Capture bindings to local vars for speed.
         strict *strict*
-        delimiter (int *delimiter*)]
+        delimiter (int *delimiter*)
+        quote-char *quote-char*]
     (loop [fields (transient []) ;; Will return this as the vector of fields.
            current-field (StringBuffer.) ;; Buffer for cell we are working on.
            quoting? false     ;; Are we inside a quoted cell at this point?
@@ -124,7 +132,7 @@ and quotes. The main functions are parse-csv and write-csv."}
               (recur (conj! fields (.toString current-field))
                      (StringBuffer.) quoting?
                      (first remaining-chars) (rest remaining-chars))
-              (= (int \") (int current-char))
+              (= (int quote-char) (int current-char))
               (if (and (not (= 0 (.length current-field)))
                        (not quoting?))
                 ;; There's a double-quote present in an unquoted field, which
@@ -135,14 +143,14 @@ and quotes. The main functions are parse-csv and write-csv."}
                 (if strict
                   (throw (Exception. "Double quote present in unquoted field."))
                   (recur fields
-                         (.append current-field \") quoting?
+                         (.append current-field quote-char) quoting?
                          (first remaining-chars)
                          (rest remaining-chars)))
-                (if (and (= \" (first remaining-chars))
+                (if (and (= quote-char (first remaining-chars))
                          quoting?)
                   ;; Saw "" so don't change quoting, just go to next character.
                   (recur fields
-                         (.append current-field \") quoting?
+                         (.append current-field quote-char) quoting?
                          (first (rest remaining-chars))
                          (rest (rest remaining-chars)))
                   ;; Didn't see the second ", so change quoting state.
@@ -176,6 +184,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   ([csv]
      (parse-csv-with-bindings csv {#'*strict* *strict*
                                    #'*delimiter* *delimiter*
+                                   #'*quote-char* *quote-char*
                                    #'*end-of-line* *end-of-line*})))
 
 ;;
@@ -187,7 +196,7 @@ and quotes. The main functions are parse-csv and write-csv."}
    requires this cell to be quoted."
   [^String cell]
   (or (.contains cell (str *delimiter*))
-      (.contains cell "\"")
+      (.contains cell (str *quote-char*))
       (.contains cell "\n")
       (.contains cell "\r")))
 
@@ -196,14 +205,14 @@ and quotes. The main functions are parse-csv and write-csv."}
    as the original character or a replacement. The return is a string or a
    character, but it all gets passed into str anyways."
   [chr]
-  (if (= \" chr) "\"\"" chr))
+  (if (= *quote-char* chr) (str *quote-char* *quote-char*) chr))
 
 (defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
   [cell]
   (if (needs-quote? cell)
-    (str "\"" (apply str (map escape cell)) "\"")
+    (str *quote-char* (apply str (map escape cell)) *quote-char*)
     cell))
 
 (defn- quote-and-escape-row
