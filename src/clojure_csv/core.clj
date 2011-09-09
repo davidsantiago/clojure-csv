@@ -173,12 +173,12 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Takes a CSV as a string or char seq and returns a seq of the parsed CSV rows,
    in the form of a lazy sequence of vectors: a vector per row, a string for
    each cell."
-  #_([csv]
-     (parse-csv csv :strict false :delimiter \, :quote-char \" :end-of-line "\n"))
   ([csv & {:as opts}]
-     (parse-csv-with-options csv (merge {:strict false :delimiter \,
-                                         :quote-char \" :end-of-line "\n"} opts))))
-  
+     (parse-csv-with-options csv (merge {:strict false
+                                         :delimiter \,
+                                         :quote-char \"}
+                                        opts))))
+
 ;;
 ;; CSV Output
 ;;
@@ -186,9 +186,9 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- needs-quote?
   "Given a string (cell), determine whether it contains a character that
    requires this cell to be quoted."
-  [^String cell]
-  (or (.contains cell (str *delimiter*))
-      (.contains cell (str *quote-char*))
+  [^String cell delimiter quote-char]
+  (or (.contains cell delimiter)
+      (.contains cell (str quote-char))
       (.contains cell "\n")
       (.contains cell "\r")))
 
@@ -196,30 +196,37 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a character, returns the escaped version, whether that is the same
    as the original character or a replacement. The return is a string or a
    character, but it all gets passed into str anyways."
-  [chr]
-  (if (= *quote-char* chr) (str *quote-char* *quote-char*) chr))
+  [chr delimiter quote-char]
+  (if (= quote-char chr) (str quote-char quote-char) chr))
 
 (defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
-  [cell]
-  (if (needs-quote? cell)
-    (str *quote-char* (apply str (map escape cell)) *quote-char*)
+  [cell delimiter quote-char]
+  (if (needs-quote? cell delimiter quote-char)
+    (str quote-char
+         (apply str (map #(escape % delimiter quote-char)
+                                    cell))
+         quote-char)
     cell))
 
 (defn- quote-and-escape-row
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
-  [row]
-  (string/join *delimiter* (map quote-and-escape row)))
+  [row delimiter quote-char]
+  (string/join delimiter (map #(quote-and-escape % delimiter quote-char) row)))
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
    in CSV format, with all appropriate quoting and escaping."
-  [table]
-    (loop [csv-string (StringBuffer.)
-           quoted-table (map quote-and-escape-row table)]
-      (if (empty? quoted-table)
-        (.toString csv-string)
-        (recur (.append csv-string (str (first quoted-table) *end-of-line*))
-               (rest quoted-table)))))
+  [table & {:keys [delimiter quote-char end-of-line]
+            :or {delimiter \, quote-char \" end-of-line "\n"}}]
+  (loop [csv-string (StringBuilder.)
+         quoted-table (map #(quote-and-escape-row %
+                                                  (str delimiter)
+                                                  quote-char)
+                           table)]
+    (if (empty? quoted-table)
+      (.toString csv-string)
+      (recur (.append csv-string (str (first quoted-table) end-of-line))
+             (rest quoted-table)))))

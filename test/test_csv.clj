@@ -67,11 +67,11 @@
   (is (= [["First", "Second"]]
            (parse-csv "First\tSecond" :delimiter \tab)))
   (is (= "First\tSecond\n"
-         (binding [*delimiter* \tab] (write-csv [["First", "Second"]]))))
+         (write-csv [["First", "Second"]] :delimiter \tab)))
   (is (= "First\tSecond,Third\n"
-         (binding [*delimiter* \tab] (write-csv [["First", "Second,Third"]]))))
+         (write-csv [["First", "Second,Third"]] :delimiter \tab)))
   (is (= "First\t\"Second\tThird\"\n"
-         (binding [*delimiter* \tab] (write-csv [["First", "Second\tThird"]])))))
+         (write-csv [["First", "Second\tThird"]] :delimiter \tab))))
 
 (deftest alternate-quote-char
   (is (= [["a", "b", "c"]]
@@ -81,11 +81,11 @@
   (is (= [["a", "b\"\nc", "d"]]
            (parse-csv "a,|b\"\nc|,d" :quote-char \|)))
   (is (= "a,|b||c|,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b|c", "d"]]))))
+         (write-csv [["a", "b|c", "d"]] :quote-char \|)))
   (is (= "a,|b\nc|,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b\nc", "d"]]))))
+         (write-csv [["a", "b\nc", "d"]] :quote-char \|)))
   (is (= "a,b\"c,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b\"c", "d"]])))))
+         (write-csv [["a", "b\"c", "d"]] :quote-char \|))))
 
 (deftest strictness
   (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
