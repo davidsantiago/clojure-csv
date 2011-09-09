@@ -93,20 +93,16 @@ and quotes. The main functions are parse-csv and write-csv."}
    strings). The second is the remainder of the CSV file. Correctly deals with
    commas in quoted strings and double-quotes as quote-escape in a quoted
    string."
-  [csv-line]
-  (let [csv-chars (seq csv-line)
-        ;; Capture bindings to local vars for speed.
-        strict *strict*
-        delimiter (int *delimiter*)
-        quote-char *quote-char*]
+  [csv-line {:keys [strict delimiter quote-char]}]
+  (let [csv-chars (seq csv-line)]
     (loop [fields (transient []) ;; Will return this as the vector of fields.
-           current-field (StringBuffer.) ;; Buffer for cell we are working on.
+           current-field (StringBuilder.) ;; Buffer for cell we are working on.
            quoting? false     ;; Are we inside a quoted cell at this point?
            current-char (first csv-chars)
            remaining-chars (rest csv-chars)]
       (letfn [(unquoted-comma? [^long chr]
-                               (and (= delimiter chr)
-                                    (not quoting?)))
+                (and (= (int delimiter) chr)
+                     (not quoting?)))
               ;; field-with-remainder makes the vector of return values.
               (field-with-remainder [remaining-chars]
                 (if (and (nil? remaining-chars) quoting? strict)
@@ -130,7 +126,7 @@ and quotes. The main functions are parse-csv and write-csv."}
               ;; field and add to fields.
               (unquoted-comma? (int current-char))
               (recur (conj! fields (.toString current-field))
-                     (StringBuffer.) quoting?
+                     (StringBuilder.) quoting?
                      (first remaining-chars) (rest remaining-chars))
               (= (int quote-char) (int current-char))
               (if (and (not (= 0 (.length current-field)))
@@ -153,7 +149,7 @@ and quotes. The main functions are parse-csv and write-csv."}
                          (.append current-field quote-char) quoting?
                          (first (rest remaining-chars))
                          (rest (rest remaining-chars)))
-                  ;; Didn't see the second ", so change quoting state.
+                  ;; Didn't see the second quote char, so change quoting state.
                   (recur fields
                          current-field (not quoting?)
                          (first remaining-chars)
@@ -166,27 +162,23 @@ and quotes. The main functions are parse-csv and write-csv."}
                           (first remaining-chars)
                           (rest remaining-chars)))))))
 
-(defn- parse-csv-with-bindings
-  "Because we do parsing lazily, we have to make special provisions for the
-   bindings in place at call-time to still be in place when things are
-   actually evaluated. This function makes that transparent to callers."
-  [csv bind-map]
-  (lazy-seq
-   (with-bindings bind-map
-     (when (not (nil? csv))
-       (let [[row remainder] (parse-csv-line csv)]
-         (cons row (parse-csv-with-bindings remainder bind-map)))))))
+(defn- parse-csv-with-options
+  [csv opts]
+   (lazy-seq
+    (when (not (nil? csv))
+      (let [[row remainder] (parse-csv-line csv opts)]
+        (cons row (parse-csv-with-options remainder opts))))))
 
 (defn parse-csv
   "Takes a CSV as a string or char seq and returns a seq of the parsed CSV rows,
    in the form of a lazy sequence of vectors: a vector per row, a string for
    each cell."
-  ([csv]
-     (parse-csv-with-bindings csv {#'*strict* *strict*
-                                   #'*delimiter* *delimiter*
-                                   #'*quote-char* *quote-char*
-                                   #'*end-of-line* *end-of-line*})))
-
+  #_([csv]
+     (parse-csv csv :strict false :delimiter \, :quote-char \" :end-of-line "\n"))
+  ([csv & {:as opts}]
+     (parse-csv-with-options csv (merge {:strict false :delimiter \,
+                                         :quote-char \" :end-of-line "\n"} opts))))
+  
 ;;
 ;; CSV Output
 ;;

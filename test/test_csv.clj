@@ -65,9 +65,9 @@
 
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
-           (binding [*delimiter* \tab] (parse-csv "First\tSecond"))))
+           (parse-csv "First\tSecond" :delimiter \tab)))
   (is (= "First\tSecond\n"
-           (binding [*delimiter* \tab] (write-csv [["First", "Second"]]))))
+         (binding [*delimiter* \tab] (write-csv [["First", "Second"]]))))
   (is (= "First\tSecond,Third\n"
          (binding [*delimiter* \tab] (write-csv [["First", "Second,Third"]]))))
   (is (= "First\t\"Second\tThird\"\n"
@@ -75,11 +75,11 @@
 
 (deftest alternate-quote-char
   (is (= [["a", "b", "c"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b|,c"))))
+           (parse-csv "a,|b|,c" :quote-char \|)))
   (is (= [["a", "b|c", "d"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b||c|,d"))))
+           (parse-csv "a,|b||c|,d" :quote-char \|)))
   (is (= [["a", "b\"\nc", "d"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b\"\nc|,d"))))
+           (parse-csv "a,|b\"\nc|,d" :quote-char \|)))
   (is (= "a,|b||c|,d\n"
          (binding [*quote-char* \|] (write-csv [["a", "b|c", "d"]]))))
   (is (= "a,|b\nc|,d\n"
@@ -88,17 +88,17 @@
          (binding [*quote-char* \|] (write-csv [["a", "b\"c", "d"]])))))
 
 (deftest strictness
-  (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,\"d")))))
-  (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,d\"e")))))
+  (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
+  (is (thrown? Exception (dorun (parse-csv "a,b,c,d\"e" :strict true))))
   (is (= [["a","b","c","d"]]
-         (binding [*strict* false] (parse-csv "a,b,c,\"d"))))
+           (parse-csv "a,b,c,\"d" :strict false)))
   (is (= [["a","b","c","d"]]
-         (binding [*strict* true] (parse-csv "a,b,c,\"d\""))))
+           (parse-csv "a,b,c,\"d\"" :strict true)))
   (is (= [["a","b","c","d\""]]
-           (binding [*strict* false] (parse-csv "a,b,c,d\""))))
+           (parse-csv "a,b,c,d\"" :strict false)))
   (is (= [["120030" "BLACK COD FILET MET VEL \"MSC\"" "KG" "0" "1"]]
-       (binding [*strict* false *delimiter* \;]
-         (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1")))))
+           (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1"
+                      :strict false :delimiter \;))))
 
 (deftest reader-cases
   ;; reader will be created and closed in with-open, but used outside.

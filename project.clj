@@ -3,4 +3,5 @@
   :dependencies [[org.clojure/clojure "1.3.0-beta3"]]
   :dev-dependencies [[swank-clojure "1.3.0"
                       :exclusions [org.clojure/clojure
-                                   org.clojure/clojure-contrib]]])
+                                   org.clojure/clojure-contrib]]]
+  :jvm-opts ["-Xmx1g"])
