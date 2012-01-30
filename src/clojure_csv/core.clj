@@ -172,14 +172,15 @@ and quotes. The main functions are parse-csv and write-csv."}
        (cons row (parse-csv-with-options csv-reader opts))))))
 
 (defn parse-csv
-  "Takes a CSV as a string or char seq and returns a seq of the parsed CSV rows,
+  "Takes a CSV as a string or Reader and returns a seq of the parsed CSV rows,
    in the form of a lazy sequence of vectors: a vector per row, a string for
    each cell."
   ([csv & {:as opts}]
-     (parse-csv-with-options (StringReader. csv) (merge {:strict false
-                                                        :delimiter \,
-                                                        :quote-char \"}
-                                                       opts))))
+     (let [csv-reader (if (string? csv) (StringReader. csv) csv)]
+       (parse-csv-with-options csv-reader (merge {:strict false
+                                                  :delimiter \,
+                                                  :quote-char \"}
+                                                 opts)))))
 
 ;;
 ;; CSV Output
