@@ -1,32 +1,19 @@
 (ns test-csv
   (:import [java.io StringReader])
   (:use clojure.test
+        clojure.java.io
         clojure-csv.core))
-
-(defn- i-arr [^String s] (int-array (map int s)))
-
-(defn- b-arr [^String s] (byte-array (map (comp byte int) s)))
-
-(defn- c-arr [^String s] (char-array s))
 
 (deftest basic-functionality
   (is (= [["a" "b" "c"]] (parse-csv "a,b,c")))
   (is (= [["" ""]] (parse-csv ",")))
-  (is (= [[""]] (parse-csv ""))))
+  (is (= [["a" "b"]] (parse-csv "a,b\r\n"))) ;; Linebreak on eof won't add line.
+  (is (= [] (parse-csv ""))))
 
 (deftest alternate-sources
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (i-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (i-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (i-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (b-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (b-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (b-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (c-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (c-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (c-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (StringReader. "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (StringReader. ",")))))
-  (is (= [[""]] (parse-csv (char-seq (StringReader. ""))))))
+  (is (= [["a" "b" "c"]] (parse-csv (StringReader. "a,b,c"))))
+  (is (= [["" ""]] (parse-csv (StringReader. ","))))
+  (is (= [] (parse-csv (StringReader. "")))))
 
 (deftest quoting
   (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
@@ -60,8 +47,8 @@
          (write-csv [["quoted:" "escaped\"quotes\""]]))))
 
 (deftest nonstring-inputs
-  (is (= [["First", "Second"]] (parse-csv (seq "First,Second"))))
-  (is (= [["First", "Second"]] (parse-csv (.toCharArray "First,Second")))))
+  (is (= [["First", "Second"]] (parse-csv
+                                (reader (.toCharArray "First,Second"))))))
 
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
