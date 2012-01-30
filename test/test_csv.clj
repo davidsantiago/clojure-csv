@@ -92,5 +92,5 @@
   ;; this is actually a java.io.IOException, but thrown at runtime so...
   (is (thrown? java.lang.RuntimeException
                (dorun (with-open [sr (StringReader. "a,b,c")]
-                        (parse-csv (char-seq sr)))))))
+                        (parse-csv sr))))))
 
