@@ -4,3 +4,4 @@ lib
 classes
 .cake
 .lein-failures
+.lein-deps-sum
