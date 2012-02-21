@@ -27,6 +27,18 @@
 "Elapsed time: 5925.056 msecs"
 "Elapsed time: 5943.415 msecs"
 
+;;; Results from clojure-csv 2.0.0-alpha1 (Clojure 1.3.0)
+"Elapsed time: 725.3 msecs"
+"Elapsed time: 653.785 msecs"
+"Elapsed time: 658.026 msecs"
+"Elapsed time: 669.622 msecs"
+"Elapsed time: 650.866 msecs"
+"Elapsed time: 655.19 msecs"
+"Elapsed time: 652.416 msecs"
+"Elapsed time: 686.332 msecs"
+"Elapsed time: 655.465 msecs"
+"Elapsed time: 651.724 msecs"
+
 (def cbp02 (doall (take 5000 (parse-csv csvfile))))
 (dotimes [_ 10] (time (doall (write-csv cbp02))))
 
@@ -53,3 +65,15 @@
 "Elapsed time: 377.439 msecs"
 "Elapsed time: 362.493 msecs"
 "Elapsed time: 386.491 msecs"
+
+;;; Results from clojure-csv 2.0.0-alpha1 (Clojure 1.3.0)
+"Elapsed time: 63.865 msecs"
+"Elapsed time: 63.538 msecs"
+"Elapsed time: 58.148 msecs"
+"Elapsed time: 58.851 msecs"
+"Elapsed time: 61.203 msecs"
+"Elapsed time: 58.077 msecs"
+"Elapsed time: 56.727 msecs"
+"Elapsed time: 58.531 msecs"
+"Elapsed time: 58.205 msecs"
+"Elapsed time: 58.485 msecs"
