@@ -9,36 +9,9 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 ;(set! *warn-on-reflection* true)
 
-(def
-  ^{:dynamic true
-    :doc
-    "A character that contains the cell separator for each column in a row.
-    Default value: \\,"}
-  *delimiter* \,)
-
-(def
-  ^{:dynamic true
-    :doc
-    "A string containing the end-of-line character for writing CSV files.
-    This setting is ignored for reading (\n and \r\n are both accepted).
-    Default value: \"\\n\""}
-  *end-of-line* "\n")
-
-(def
-  ^{:dynamic true
-    :doc
-    "A character that is used to begin and end a quoted cell.
-     Default value: \\\""}
-  *quote-char* \")
-
-(def
-  ^{:dynamic true
-    :doc
-    "If this variable is true, the parser will throw an exception on invalid
-    input.
-    Default value: false"}
-  *strict* false)
-
+;;
+;; Utilities
+;;
 
 (defn- reader-peek
   [^Reader reader]
@@ -71,7 +44,7 @@ and quotes. The main functions are parse-csv and write-csv."}
 ;; can read any more it needs to.
 (defn- custom-eof?
   [^long current-char ^Reader reader eof]
-  (.mark reader 128)
+  (.mark reader 16)
   (let [result (loop [curr-rdr-char current-char
                       remaining-eof (seq eof)]
                  (if (nil? remaining-eof)
@@ -173,7 +146,19 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn parse-csv
   "Takes a CSV as a string or Reader and returns a seq of the parsed CSV rows,
    in the form of a lazy sequence of vectors: a vector per row, a string for
-   each cell."
+   each cell.
+
+   Accepts a number of keyword arguments to change the parsing behavior:
+        :delimiter - A character that contains the cell separator for
+                     each column in a row.  Default value: \\,
+        :end-of-line - A string containing the end-of-line character
+                       for reading CSV files. If this setting is nil then
+                       \\n and \\r\\n are both accepted.  Default value: nil
+        :quote-char - A character that is used to begin and end a quoted cell.
+                      Default value: \\\"
+        :strict - If this variable is true, the parser will throw an
+                  exception on parse errors that are recoverable but
+                  not to spec or otherwise nonsensical.  Default value: false"
   ([csv & {:as opts}]
      (let [csv-reader (if (string? csv) (StringReader. csv) csv)]
        (parse-csv-with-options csv-reader (merge {:strict false
@@ -220,7 +205,15 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
-   in CSV format, with all appropriate quoting and escaping."
+   in CSV format, with all appropriate quoting and escaping.
+
+   Accepts a number of keyword arguments to change the output:
+       :delimiter - A character that contains the cell separator for
+                    each column in a row.  Default value: \\,
+       :end-of-line - A string containing the end-of-line character
+                      for writing CSV files.  Default value: \\n
+       :quote-char - A character that is used to begin and end a quoted cell.
+                     Default value: \\\""
   [table & {:keys [delimiter quote-char end-of-line]
             :or {delimiter \, quote-char \" end-of-line "\n"}}]
   (loop [csv-string (StringBuilder.)
