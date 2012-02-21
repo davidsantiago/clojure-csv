@@ -7,7 +7,6 @@ and quotes. The main functions are parse-csv and write-csv."}
   (:require [clojure.string :as string])
   (:import [java.io Reader StringReader]))
 
-;(set! *warn-on-reflection* true)
 
 ;;
 ;; Utilities
