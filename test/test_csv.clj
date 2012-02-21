@@ -94,3 +94,24 @@
                (dorun (with-open [sr (StringReader. "a,b,c")]
                         (parse-csv sr))))))
 
+(deftest custom-eof
+  ;; Testing the private function to check user-specified EOFs
+  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bc")
+                                              "abc")))
+  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bcdef")
+                                              "abc")))
+  (is (= false (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "b")
+                                               "abc")))
+    ;; Test the use of this option.
+  (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,b\rc,d" :end-of-line "\r")))
+  (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,babcc,d" :end-of-line "abc")))
+  ;; The presence of an end-of-line option turns off the parsing of \n and \r\n
+  ;; as EOLs, so they can appear unquoted in fields when they do not interfere
+  ;; with the EOL.
+  (is (= [["a" "b\n"] ["c" "d"]] (parse-csv "a,b\n\rc,d" :end-of-line "\r")))
+  (is (= [["a" "b"] ["\nc" "d"]] (parse-csv "a,b\r\nc,d" :end-of-line "\r")))
+  ;; Custom EOL can still be quoted into a field.
+  (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,\"b\r\"\rc,d"
+                                            :end-of-line "\r")))
+  (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
+                                            :end-of-line "\r" :quote-char \|))))

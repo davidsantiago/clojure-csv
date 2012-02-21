@@ -61,9 +61,30 @@ and quotes. The main functions are parse-csv and write-csv."}
   (= (int \newline) current-char))
 
 (defn- crlf?
-  [^long current-char next-char]
+  [^long current-char ^long next-char]
   (and (= (int \return) current-char)
        (= (int \newline) next-char)))
+
+;; This is a last-resort function to check a custom-specified EOF. Probably
+;; much slower. Leaves the reader where it was when it started. Takes as its
+;; first arg the "current char," with the rest of the sequence in reader, so it
+;; can read any more it needs to.
+(defn- custom-eof?
+  [^long current-char ^Reader reader eof]
+  (.mark reader 128)
+  (let [result (loop [curr-rdr-char current-char
+                      remaining-eof (seq eof)]
+                 (if (nil? remaining-eof)
+                   ;; Reached the end of the EOF to check for, so
+                   ;; return success.
+                   true
+                   ;; Didn't reach the EOF, so check the next char and
+                   ;; recur if they match. Otherwise fail.
+                   (if (= curr-rdr-char (int (first remaining-eof)))
+                     (recur (.read reader) (next remaining-eof))
+                     false)))]
+    (.reset reader)
+    result))
 
 (defn- parse-csv-line
   "Takes a CSV-formatted string or char seq (or something that becomes a char
@@ -72,7 +93,7 @@ and quotes. The main functions are parse-csv and write-csv."}
    strings). The second is the remainder of the CSV file. Correctly deals with
    commas in quoted strings and double-quotes as quote-escape in a quoted
    string."
-  [^Reader csv-reader {:keys [strict delimiter quote-char]}]
+  [^Reader csv-reader {:keys [strict delimiter quote-char end-of-line]}]
   (loop [fields (transient []) ;; Will return this as the vector of fields.
          current-field (StringBuilder.) ;; Buffer for cell we are working on.
          quoting? false ;; Are we inside a quoted cell at this point?
@@ -92,12 +113,18 @@ and quotes. The main functions are parse-csv and write-csv."}
             ;; If we are on a newline while not quoting, then we can end this
             ;; line and return.
             ;; Two cases for the different number of characters to skip.
-            (and (not quoting?)
+            (and (not quoting?) (not end-of-line)
                  (lf? (int current-char)))
             (field-with-remainder false)
-            (and (not quoting?)
+            (and (not quoting?) (not end-of-line)
                  (crlf? (int current-char) (reader-peek csv-reader)))
             (do (.skip csv-reader 1)
+                (field-with-remainder false))
+            ;; Check for the custom EOF. If found, skip one less than length
+            ;; of eol (since we already read the first char of it).
+            (and (not quoting?) end-of-line
+                 (custom-eof? (int current-char) csv-reader end-of-line))
+            (do (.skip csv-reader (dec (count end-of-line)))
                 (field-with-remainder false))
             ;; If we see a comma and aren't in a quote, then end the current
             ;; field and add to fields.
