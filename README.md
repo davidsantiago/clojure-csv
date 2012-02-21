@@ -28,13 +28,13 @@ Clojure-CSV was originally written for Clojure 1.0, before many of the
 modern features we now enjoy in Clojure, like keyword args, an IO
 library and fast primitive math. I've kept it completely source
 backwards compatible since then, but it's become clear that further
-improvements were going to require some changes to the API. The JARs
+improvements were going to require some changes to the API. I'm
+releasing an alpha series of 2.0 because *I'd really like to hear
+feedback from any interested parties* about how to make the best of
+this rare opportunity to make any improvements we want to it. The JARs
 for the 1.0 series will remain available indefinitely (probably a
 long, long time), so if you can't handle an API change, you can
-continue to use it as you always have. I'm releasing an alpha series
-of 2.0 because *I'd really like to hear feedback from any interested
-parties* about how to make the best of this rare opportunity to make
-any improvements we want to it.
+continue to use it as you always have.
 
 That said, there's a number of things in 2.0 that I think are worth a
 serious look: A nicer API that doesn't require futzing with var
@@ -72,7 +72,7 @@ dynamic vars are removed.
   expressed in this viewpoint as a file that contains only a line
   terminator. The same cannot be said of the 1.0 view of things: there
   was no way to represent a file with no rows. In any case, I went and
-  looked at many other CSV parsing libraries for many other languages,
+  looked at many other CSV parsing libraries for other languages,
   and they universally took the view that an empty CSV file has no
   rows, so now Clojure-CSV does as well.
 * The end-of-line option can now be set during parsing. If end-of-line is
@@ -154,7 +154,7 @@ accepted.
 ##### Default value: nil 
 #### :quote-char 
 A character that is used to begin and end a quoted cell. 
-##### Default value: \\\" 
+##### Default value: \" 
 #### :strict 
 If this variable is true, the parser will throw an exception
 on parse errors that are recoverable but not to spec or otherwise
@@ -175,7 +175,7 @@ A string containing the end-of-line character for writing CSV files.
 ##### Default value: \\n
 #### :quote-char 
 A character that is used to begin and end a quoted cell.
-##### Default value: \\\"
+##### Default value: \"
 
 Bugs
 ----
