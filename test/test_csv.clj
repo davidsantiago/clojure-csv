@@ -1,32 +1,19 @@
 (ns test-csv
   (:import [java.io StringReader])
   (:use clojure.test
+        clojure.java.io
         clojure-csv.core))
-
-(defn- i-arr [^String s] (int-array (map int s)))
-
-(defn- b-arr [^String s] (byte-array (map (comp byte int) s)))
-
-(defn- c-arr [^String s] (char-array s))
 
 (deftest basic-functionality
   (is (= [["a" "b" "c"]] (parse-csv "a,b,c")))
   (is (= [["" ""]] (parse-csv ",")))
-  (is (= [[""]] (parse-csv ""))))
+  (is (= [["a" "b"]] (parse-csv "a,b\r\n"))) ;; Linebreak on eof won't add line.
+  (is (= [] (parse-csv ""))))
 
 (deftest alternate-sources
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (i-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (i-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (i-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (b-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (b-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (b-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (c-arr "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (c-arr ",")))))
-  (is (= [[""]] (parse-csv (char-seq (c-arr "")))))
-  (is (= [["a" "b" "c"]] (parse-csv (char-seq (StringReader. "a,b,c")))))
-  (is (= [["" ""]] (parse-csv (char-seq (StringReader. ",")))))
-  (is (= [[""]] (parse-csv (char-seq (StringReader. ""))))))
+  (is (= [["a" "b" "c"]] (parse-csv (StringReader. "a,b,c"))))
+  (is (= [["" ""]] (parse-csv (StringReader. ","))))
+  (is (= [] (parse-csv (StringReader. "")))))
 
 (deftest quoting
   (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
@@ -60,50 +47,71 @@
          (write-csv [["quoted:" "escaped\"quotes\""]]))))
 
 (deftest nonstring-inputs
-  (is (= [["First", "Second"]] (parse-csv (seq "First,Second"))))
-  (is (= [["First", "Second"]] (parse-csv (.toCharArray "First,Second")))))
+  (is (= [["First", "Second"]] (parse-csv
+                                (reader (.toCharArray "First,Second"))))))
 
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
-           (binding [*delimiter* \tab] (parse-csv "First\tSecond"))))
+           (parse-csv "First\tSecond" :delimiter \tab)))
   (is (= "First\tSecond\n"
-           (binding [*delimiter* \tab] (write-csv [["First", "Second"]]))))
+         (write-csv [["First", "Second"]] :delimiter \tab)))
   (is (= "First\tSecond,Third\n"
-         (binding [*delimiter* \tab] (write-csv [["First", "Second,Third"]]))))
+         (write-csv [["First", "Second,Third"]] :delimiter \tab)))
   (is (= "First\t\"Second\tThird\"\n"
-         (binding [*delimiter* \tab] (write-csv [["First", "Second\tThird"]])))))
+         (write-csv [["First", "Second\tThird"]] :delimiter \tab))))
 
 (deftest alternate-quote-char
   (is (= [["a", "b", "c"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b|,c"))))
+           (parse-csv "a,|b|,c" :quote-char \|)))
   (is (= [["a", "b|c", "d"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b||c|,d"))))
+           (parse-csv "a,|b||c|,d" :quote-char \|)))
   (is (= [["a", "b\"\nc", "d"]]
-           (binding [*quote-char* \|] (parse-csv "a,|b\"\nc|,d"))))
+           (parse-csv "a,|b\"\nc|,d" :quote-char \|)))
   (is (= "a,|b||c|,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b|c", "d"]]))))
+         (write-csv [["a", "b|c", "d"]] :quote-char \|)))
   (is (= "a,|b\nc|,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b\nc", "d"]]))))
+         (write-csv [["a", "b\nc", "d"]] :quote-char \|)))
   (is (= "a,b\"c,d\n"
-         (binding [*quote-char* \|] (write-csv [["a", "b\"c", "d"]])))))
+         (write-csv [["a", "b\"c", "d"]] :quote-char \|))))
 
 (deftest strictness
-  (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,\"d")))))
-  (is (thrown? Exception (binding [*strict* true] (dorun (parse-csv "a,b,c,d\"e")))))
+  (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
+  (is (thrown? Exception (dorun (parse-csv "a,b,c,d\"e" :strict true))))
   (is (= [["a","b","c","d"]]
-         (binding [*strict* false] (parse-csv "a,b,c,\"d"))))
+           (parse-csv "a,b,c,\"d" :strict false)))
   (is (= [["a","b","c","d"]]
-         (binding [*strict* true] (parse-csv "a,b,c,\"d\""))))
+           (parse-csv "a,b,c,\"d\"" :strict true)))
   (is (= [["a","b","c","d\""]]
-           (binding [*strict* false] (parse-csv "a,b,c,d\""))))
+           (parse-csv "a,b,c,d\"" :strict false)))
   (is (= [["120030" "BLACK COD FILET MET VEL \"MSC\"" "KG" "0" "1"]]
-       (binding [*strict* false *delimiter* \;]
-         (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1")))))
+           (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1"
+                      :strict false :delimiter \;))))
 
 (deftest reader-cases
   ;; reader will be created and closed in with-open, but used outside.
   ;; this is actually a java.io.IOException, but thrown at runtime so...
   (is (thrown? java.lang.RuntimeException
                (dorun (with-open [sr (StringReader. "a,b,c")]
-                        (parse-csv (char-seq sr)))))))
+                        (parse-csv sr))))))
 
+(deftest custom-eof
+  ;; Testing the private function to check user-specified EOFs
+  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bc")
+                                              "abc")))
+  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bcdef")
+                                              "abc")))
+  (is (= false (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "b")
+                                               "abc")))
+    ;; Test the use of this option.
+  (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,b\rc,d" :end-of-line "\r")))
+  (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,babcc,d" :end-of-line "abc")))
+  ;; The presence of an end-of-line option turns off the parsing of \n and \r\n
+  ;; as EOLs, so they can appear unquoted in fields when they do not interfere
+  ;; with the EOL.
+  (is (= [["a" "b\n"] ["c" "d"]] (parse-csv "a,b\n\rc,d" :end-of-line "\r")))
+  (is (= [["a" "b"] ["\nc" "d"]] (parse-csv "a,b\r\nc,d" :end-of-line "\r")))
+  ;; Custom EOL can still be quoted into a field.
+  (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,\"b\r\"\rc,d"
+                                            :end-of-line "\r")))
+  (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
+                                            :end-of-line "\r" :quote-char \|))))
