@@ -1,4 +1,4 @@
-(ns test-csv
+(ns clojure-csv.test.core
   (:import [java.io StringReader])
   (:use clojure.test
         clojure.java.io
@@ -13,7 +13,9 @@
 (deftest alternate-sources
   (is (= [["a" "b" "c"]] (parse-csv (StringReader. "a,b,c"))))
   (is (= [["" ""]] (parse-csv (StringReader. ","))))
-  (is (= [] (parse-csv (StringReader. "")))))
+  (is (= [] (parse-csv (StringReader. ""))))
+  (is (= [["First", "Second"]] (parse-csv
+                                (reader (.toCharArray "First,Second"))))))
 
 (deftest quoting
   (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
@@ -45,10 +47,6 @@
          (write-csv [["quoted:" "embedded,comma"]])))
   (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
          (write-csv [["quoted:" "escaped\"quotes\""]]))))
-
-(deftest nonstring-inputs
-  (is (= [["First", "Second"]] (parse-csv
-                                (reader (.toCharArray "First,Second"))))))
 
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
@@ -94,14 +92,7 @@
                (dorun (with-open [sr (StringReader. "a,b,c")]
                         (parse-csv sr))))))
 
-(deftest custom-eof
-  ;; Testing the private function to check user-specified EOFs
-  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bc")
-                                              "abc")))
-  (is (= true (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "bcdef")
-                                              "abc")))
-  (is (= false (#'clojure-csv.core/custom-eof? (int \a) (StringReader. "b")
-                                               "abc")))
+(deftest custom-eol
     ;; Test the use of this option.
   (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,b\rc,d" :end-of-line "\r")))
   (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,babcc,d" :end-of-line "abc")))
