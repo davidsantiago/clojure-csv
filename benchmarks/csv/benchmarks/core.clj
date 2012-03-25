@@ -29,24 +29,20 @@
   (when (not (data-present?))
     (get-cbp-data)))
 
-(def read-test
-  (benchmark "CSV Read Speed"
-             :setup #(get-cbp-data-if-missing)
-             :cases [(benchmark-case :default
-                                     (fn []
-                                       (let [csvfile (slurp data-file)]
-                                         [(fn []
-                                            (dorun 50000
-                                                   (parse-csv csvfile)))])))]))
 
-(def write-test
-  (benchmark "CSV Write Speed"
-             :setup #(get-cbp-data-if-missing)
-             :cases [(benchmark-case :default
-                                     (fn []
-                                       (let [csvfile (slurp data-file)
-                                             cbp02 (doall
-                                                    (take 50000
-                                                          (parse-csv csvfile)))]
-                                         [(fn []
-                                            (doall (write-csv cbp02)))])))]))
+(defgoal read-test "CSV Read Speed"
+  :setup get-cbp-data-if-missing)
+
+(defcase* read-test :clojure-csv
+  (fn []
+    (let [csvfile (slurp data-file)]
+      [(fn [] (dorun 50000 (parse-csv csvfile)))])))
+
+(defgoal write-test "CSV Write Speed"
+  :setup get-cbp-data-if-missing)
+
+(defcase* write-test :clojure-csv
+  (fn []
+    (let [csvfile (slurp data-file)
+          cbp02 (doall (take 50000 (parse-csv csvfile)))]
+      [(fn [] (doall (write-csv cbp02)))])))
