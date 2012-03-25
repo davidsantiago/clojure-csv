@@ -79,14 +79,16 @@ dynamic vars are removed.
   set to something other than nil, parse-csv will treat \n and \r\n as
   any other character and only use the string given in end-of-line as the
   newline. 
-* Performance!  
-Clojure-CSV is now several times faster on both read
-and write. In my tests, reading a CSV file is about *10 times faster*
-than in Clojure-CSV 1.3 running in Clojure 1.3. Writing files in 2.0
-is about *6 times faster* than 1.3. So Clojure-CSV 2.0 is a lot faster.
+* Performance! Clojure-CSV is now several times faster on both read
+and write. A rewritten parser delivers much faster reading while
+maintaining all of the parsing configurability and strictness checks.
 
 Recent Updates
 --------------
+
+* Updated library to 2.0.0-alpha2..
+* Rewritten parser for additional speed increases.
+* Benchmarks to help monitor and improve performance.
 
 * Updated the library to 2.0.0-alpha1.
 * Major update: Massive speed improvements, end-of-line string is
