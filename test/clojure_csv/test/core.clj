@@ -88,7 +88,7 @@
 (deftest reader-cases
   ;; reader will be created and closed in with-open, but used outside.
   ;; this is actually a java.io.IOException, but thrown at runtime so...
-  (is (thrown? java.lang.RuntimeException
+  (is (thrown? java.io.IOException ;; java.lang.RuntimeException
                (dorun (with-open [sr (StringReader. "a,b,c")]
                         (parse-csv sr))))))
 
