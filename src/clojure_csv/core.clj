@@ -252,7 +252,11 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
   [row delimiter quote-char force-quote]
-  (string/join delimiter (map #(quote-and-escape % delimiter quote-char force-quote) row)))
+  (string/join delimiter (map #(quote-and-escape %
+                                                 delimiter
+                                                 quote-char
+                                                 force-quote)
+                              row)))
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
@@ -265,10 +269,11 @@ and quotes. The main functions are parse-csv and write-csv."}
                       for writing CSV files.  Default value: \\n
        :quote-char - A character that is used to begin and end a quoted cell.
                      Default value: \\\"
-       :force-quote - Forces every cell to be quoted, required for compatability with Excel
-                     Default value: false"
+       :force-quote - Forces every cell to be quoted (useful for Excel interop)
+                      Default value: false"
   [table & {:keys [delimiter quote-char end-of-line force-quote]
-            :or {delimiter \, quote-char \" end-of-line "\n" force-quote false}}]
+            :or {delimiter \, quote-char \" end-of-line "\n"
+                 force-quote false}}]
   (loop [csv-string (StringBuilder.)
          quoted-table (map #(quote-and-escape-row %
                                                   (str delimiter)
