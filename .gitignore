@@ -2,7 +2,9 @@ pom.xml
 *.jar
 lib
 classes
+target
 .cake
 .lein-failures
 .lein-deps-sum
+.lein-repl-history
 benchmarks/data
