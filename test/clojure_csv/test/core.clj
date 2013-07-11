@@ -48,6 +48,18 @@
   (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
          (write-csv [["quoted:" "escaped\"quotes\""]]))))
 
+(deftest force-quote-on-output
+  (is (= "test1,test2\n" (write-csv [["test1" "test2"]])))
+  (is (= "test1,test2\n" (write-csv [["test1" "test2"]] :force-quote false)))
+  (is (= "\"test1\",\"test2\"\n" (write-csv [["test1" "test2"]]
+                                            :force-quote true)))
+  (is (= "stillquoted:,\"needs,quote\"\n"
+         (write-csv [["stillquoted:" "needs,quote"]]
+                    :force-quote false)))
+  (is (= "\"allquoted:\",\"needs,quote\"\n"
+         (write-csv [["allquoted:" "needs,quote"]]
+                    :force-quote true))))
+
 (deftest alternate-delimiters
   (is (= [["First", "Second"]]
            (parse-csv "First\tSecond" :delimiter \tab)))
