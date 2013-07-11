@@ -21,70 +21,12 @@ different number of fields -- you should check this yourself. However, it is
 not possible, after parsing, to tell if the input ended before the closing
 quote of a field; if you care, it will be signaled to you.
 
-<font color="#ff0000">2.0 is Coming!!!</font> 
-----------------
-
-Clojure-CSV was originally written for Clojure 1.0, before many of the
-modern features we now enjoy in Clojure, like keyword args, an IO
-library and fast primitive math. I've kept it completely source
-backwards compatible since then, but it's become clear that further
-improvements were going to require some changes to the API. I'm
-releasing an alpha series of 2.0 because *I'd really like to hear
-feedback from any interested parties* about how to make the best of
-this rare opportunity to make any improvements we want to it. The JARs
-for the 1.0 series will remain available indefinitely (probably a
-long, long time), so if you can't handle an API change, you can
-continue to use it as you always have.
-
-That said, there's a number of things in 2.0 that I think are worth a
-serious look: A nicer API that doesn't require futzing with var
-bindings, additional configurability, and it's several times
-faster. Here's a summary of the changes:
-
-* Options are now set through keyword args to parse-csv and write-csv. The
-dynamic vars are removed.
-  - Rationale: Dynamic vars are a little annoying to rebind. This can
-  tempt you to imprudently set them for too wide a swath of
-  code. Reusing the same vars for both reading and writing meant that
-  the vars had to have the same meaning in each context, or else two
-  vars introduced to accommodate the differences. Keyword args are
-  clear, fast, explicit, and local.
-* Parsing logic is now based on Java readers instead of Clojure char seqs.
-  - Rationale: Largely performance. Clojure's char seqs are not
-  particularly fast and throw off a lot of garbage. It's not clear
-  that working entirely with pure Clojure data structures was
-  providing much value to anyone, since most users are probably
-  passing strings in anyways (strings, by the way, continue to work
-  just fine as input). Some users appeared to be passing inputs in a
-  way that caused performance problems due to perfectly reasonable
-  misunderstandings about the input that was expected (and by
-  "perfectly reasonable" I mean "my fault"). When you're doing IO, Readers
-  are close at hand in Java, and now the basis for Clojure's IO libs.
-* An empty file now parses as a file with no rows.
-  - Rationale: The CSV standard actually doesn't say anything about an
-  input that is an empty file. Clojure-CSV 1.0 would return a single
-  row with an empty string in it. The logic was that a CSV file row is
-  everything between the start of a line and the end of the line,
-  where an EOF is a line terminator. This would mean an empty file is
-  a single row that has an empty field. An alternative, and equally
-  valid view is that if a file has nothing in it, there is no row to
-  be had. A file that is a single row with an empty field can still be
-  expressed in this viewpoint as a file that contains only a line
-  terminator. The same cannot be said of the 1.0 view of things: there
-  was no way to represent a file with no rows. In any case, I went and
-  looked at many other CSV parsing libraries for other languages,
-  and they universally took the view that an empty CSV file has no
-  rows, so now Clojure-CSV does as well.
-* The end-of-line option can now be set during parsing. If end-of-line is
-  set to something other than nil, parse-csv will treat \n and \r\n as
-  any other character and only use the string given in end-of-line as the
-  newline. 
-* Performance! Clojure-CSV is now several times faster on both read
-and write. A rewritten parser delivers much faster reading while
-maintaining all of the parsing configurability and strictness checks.
+The API has changed in the 2.0 series; see below for details.
 
 Recent Updates
 --------------
+
+* Updated library to 2.0.0; essentially identical to 2.0.0-alpha2.
 
 * Updated library to 2.0.0-alpha2..
 * Rewritten parser for additional speed increases.
@@ -128,7 +70,7 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add 
 
-    [clojure-csv/clojure-csv "2.0.0-alpha1"]
+    [clojure-csv/clojure-csv "2.0.0"]
 
 to your project.clj and download it from Clojars with 
 
@@ -178,6 +120,53 @@ A string containing the end-of-line character for writing CSV files.
 #### :quote-char 
 A character that is used to begin and end a quoted cell.
 ##### Default value: \"
+
+Changes from API 1.0
+--------------------
+
+Clojure-CSV was originally written for Clojure 1.0, before many of the
+modern features we now enjoy in Clojure, like keyword args, an IO
+library and fast primitive math. The 2.0 series freshens up the API to
+more modern Clojure API style, language capabilities, and coding
+conventions. The JARs for the 1.0 series will remain available
+indefinitely (probably a long, long time), so if you can't handle an
+API change, you can continue to use it as you always have.
+
+Here's a summary of the changes:
+
+* Options are now set through keyword args to parse-csv and write-csv. The
+dynamic vars are removed.
+  - Rationale: Dynamic vars are a little annoying to rebind. This can
+  tempt you to imprudently set them for too wide a swath of
+  code. Reusing the same vars for both reading and writing meant that
+  the vars had to have the same meaning in each context, or else two
+  vars introduced to accommodate the differences. Keyword args are
+  clear, fast, explicit, and local.
+* Parsing logic is now based on Java readers instead of Clojure char seqs.
+  - Rationale: Largely performance. Clojure's char seqs are not
+  particularly fast and throw off a lot of garbage. It's not clear
+  that working entirely with pure Clojure data structures was
+  providing much value to anyone. When you're doing IO, Readers
+  are close at hand in Java, and now the basis for Clojure's IO libs.
+* An empty file now parses as a file with no rows.
+  - Rationale: The CSV standard actually doesn't say anything about an
+  input that is an empty file. Clojure-CSV 1.0 would return a single
+  row with an empty string in it. The logic was that a CSV file row is
+  everything between the start of a line and the end of the line,
+  where an EOF is a line terminator. This would mean an empty file is
+  a single row that has an empty field. An alternative, and equally
+  valid view is that if a file has nothing in it, there is no row to
+  be had. A file that is a single row with an empty field can still be
+  expressed in this viewpoint as a file that contains only a line
+  terminator. The same cannot be said of the 1.0 view of things: there
+  was no way to represent a file with no rows. In any case, I went and
+  looked at many other CSV parsing libraries for other languages,
+  and they universally took the view that an empty CSV file has no
+  rows, so now Clojure-CSV does as well.
+* The end-of-line option can now be set during parsing. If end-of-line is
+  set to something other than nil, parse-csv will treat \n and \r\n as
+  any other character and only use the string given in end-of-line as the
+  newline. 
 
 Bugs
 ----
