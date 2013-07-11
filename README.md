@@ -26,6 +26,8 @@ The API has changed in the 2.0 series; see below for details.
 Recent Updates
 --------------
 
+* Updated library to 2.0.1, which adds the :force-quote option to write-csv.
+  Big thanks to [Barrie McGuire](https://github.com/pleasle) for the contribution.
 * Updated library to 2.0.0; essentially identical to 2.0.0-alpha2.
 
 * Updated library to 2.0.0-alpha2..
@@ -70,7 +72,7 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add 
 
-    [clojure-csv/clojure-csv "2.0.0"]
+    [clojure-csv/clojure-csv "2.0.1"]
 
 to your project.clj and download it from Clojars with 
 
@@ -120,6 +122,11 @@ A string containing the end-of-line character for writing CSV files.
 #### :quote-char 
 A character that is used to begin and end a quoted cell.
 ##### Default value: \"
+#### :force-quote
+If this variable is true, the output will have ever field quoted, whether
+this is needed or not. This can apparently be helpful for interoperating
+with Excel.
+##### Default value: false
 
 Changes from API 1.0
 --------------------
@@ -176,6 +183,7 @@ Contributors
 ------------
  - [Slawek Gwizdowski](https://github.com/i0cus)
  - [Matt Lehman](http://github.com/mlehman)
+ - [Barrie McGuire](http://github.com/pleasle)
 
 License
 --------

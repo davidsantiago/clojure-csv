@@ -240,8 +240,8 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
-  [cell delimiter quote-char]
-  (if (needs-quote? cell delimiter quote-char)
+  [cell delimiter quote-char force-quote]
+  (if (or force-quote (needs-quote? cell delimiter quote-char))
     (str quote-char
          (apply str (map #(escape % delimiter quote-char)
                                     cell))
@@ -251,8 +251,12 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- quote-and-escape-row
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
-  [row delimiter quote-char]
-  (string/join delimiter (map #(quote-and-escape % delimiter quote-char) row)))
+  [row delimiter quote-char force-quote]
+  (string/join delimiter (map #(quote-and-escape %
+                                                 delimiter
+                                                 quote-char
+                                                 force-quote)
+                              row)))
 
 (defn write-csv
   "Given a sequence of sequences of strings, returns a string of that table
@@ -264,13 +268,17 @@ and quotes. The main functions are parse-csv and write-csv."}
        :end-of-line - A string containing the end-of-line character
                       for writing CSV files.  Default value: \\n
        :quote-char - A character that is used to begin and end a quoted cell.
-                     Default value: \\\""
-  [table & {:keys [delimiter quote-char end-of-line]
-            :or {delimiter \, quote-char \" end-of-line "\n"}}]
+                     Default value: \\\"
+       :force-quote - Forces every cell to be quoted (useful for Excel interop)
+                      Default value: false"
+  [table & {:keys [delimiter quote-char end-of-line force-quote]
+            :or {delimiter \, quote-char \" end-of-line "\n"
+                 force-quote false}}]
   (loop [csv-string (StringBuilder.)
          quoted-table (map #(quote-and-escape-row %
                                                   (str delimiter)
-                                                  quote-char)
+                                                  quote-char
+                                                  force-quote)
                            table)]
     (if (empty? quoted-table)
       (.toString csv-string)
