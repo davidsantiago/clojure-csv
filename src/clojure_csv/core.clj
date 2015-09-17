@@ -234,16 +234,16 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a character, returns the escaped version, whether that is the same
    as the original character or a replacement. The return is a string or a
    character, but it all gets passed into str anyways."
-  [chr delimiter quote-char]
-  (if (= quote-char chr) (str quote-char quote-char) chr))
+  [chr delimiter quote-char escape-char]
+  (if (= quote-char chr) (str escape-char quote-char) chr))
 
 (defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
-  [cell delimiter quote-char force-quote]
+  [cell delimiter quote-char escape-char force-quote]
   (if (or force-quote (needs-quote? cell delimiter quote-char))
     (str quote-char
-         (apply str (map #(escape % delimiter quote-char)
+         (apply str (map #(escape % delimiter quote-char escape-char)
                                     cell))
          quote-char)
     cell))
@@ -251,10 +251,11 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- quote-and-escape-row
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
-  [row delimiter quote-char force-quote]
+  [row delimiter quote-char escape-char force-quote]
   (string/join delimiter (map #(quote-and-escape %
                                                  delimiter
                                                  quote-char
+                                                 escape-char
                                                  force-quote)
                               row)))
 
@@ -269,15 +270,18 @@ and quotes. The main functions are parse-csv and write-csv."}
                       for writing CSV files.  Default value: \\n
        :quote-char - A character that is used to begin and end a quoted cell.
                      Default value: \\\"
+       :escape-char - A character that is used to escape quoting.
+                     Default value: :quote-char
        :force-quote - Forces every cell to be quoted (useful for Excel interop)
                       Default value: false"
-  [table & {:keys [delimiter quote-char end-of-line force-quote]
+  [table & {:keys [delimiter quote-char escape-char end-of-line force-quote]
             :or {delimiter \, quote-char \" end-of-line "\n"
                  force-quote false}}]
   (loop [csv-string (StringBuilder.)
          quoted-table (map #(quote-and-escape-row %
                                                   (str delimiter)
                                                   quote-char
+                                                  (if (nil? escape-char) quote-char escape-char)
                                                   force-quote)
                            table)]
     (if (empty? quoted-table)

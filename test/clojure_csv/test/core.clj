@@ -84,6 +84,14 @@
   (is (= "a,b\"c,d\n"
          (write-csv [["a", "b\"c", "d"]] :quote-char \|))))
 
+(deftest alternate-escape-char
+  (is (= "quoted:,\"escaped\"quotes\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]] :escape-char "")))
+  (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]] :escape-char \")))
+  (is (= "quoted:,\"escaped\\\"quotes\\\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]] :escape-char \\))))
+
 (deftest strictness
   (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
   (is (thrown? Exception (dorun (parse-csv "a,b,c,d\"e" :strict true))))
