@@ -40,6 +40,13 @@ and quotes. The main functions are parse-csv and write-csv."}
     (.reset reader)
     result))
 
+(defn- cr-at-reader-pos?
+  "Given a reader, returns true if the reader is currently pointing at an \r
+   character. Reader will not be changed when the function returns."
+  [^Reader reader]
+  (let [next-char (reader-peek reader)]
+    (== next-char (int \return))))
+
 (defn- custom-eol-at-reader-pos?
   "Given a reader and an end-of-line string, returns true if the reader is
    currently pointing at an instance of the end-of-line string. Reader will not
@@ -61,12 +68,13 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 (defn- eol-at-reader-pos?
   "Given a reader and optionally an end-of-line string, returns true if the
-   reader is currently pointing at an end-of-line (LF/CRLF/the end-of-line arg).
+   reader is currently pointing at an end-of-line (LF/CRLF/CR/the end-of-line arg).
    Reader will not be changed when the function returns. Note that if the
-   EOL is specified, it will not check for LF/CRLF."
+   EOL is specified, it will not check for LF/CRLF/CR."
   ([^Reader reader]
      (or (lf-at-reader-pos? reader)
-         (crlf-at-reader-pos? reader)))
+         (crlf-at-reader-pos? reader)
+         (cr-at-reader-pos? reader)))
   ([^Reader reader end-of-line]
      (if end-of-line
        (custom-eol-at-reader-pos? reader end-of-line)
@@ -76,7 +84,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a reader that is pointing at an end-of-line
    (LF/CRLF/the end-of-line arg), moves the reader forward to the
    first character after the end-of-line sequence. Note that if the EOL is
-   specified, it will not check for LF/CRLF."
+   specified, it will not check for LF/CRLF/CR."
   ([^Reader reader]
      ;; If we peek and see a newline (LF), then the EOL is just an LF, skip 1.
      ;; Otherwise, the EOL is a CRLF, so skip 2.
