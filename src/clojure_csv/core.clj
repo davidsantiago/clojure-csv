@@ -13,12 +13,11 @@ and quotes. The main functions are parse-csv and write-csv."}
 ;;
 
 (defn- reader-peek
-  (^long [^Reader reader offset]
-     (.mark reader offset)
-     (.skip reader (max 0(- offset 1)))
-     (let [c (.read reader)] (do (.reset reader) c )))
-  (^long [^Reader reader]
-     (reader-peek reader 1)))
+  ^long [^Reader reader]
+  (.mark reader 1)
+  (let [c (.read reader)]
+    (.reset reader)
+    c))
 
 ;;
 ;; CSV Input
@@ -26,19 +25,16 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 (defn- lf-at-reader-pos?
   "Given a reader, returns true if the reader is currently pointing at an \n
-   character, or there is such character at its current position + offset.
-   Reader will not be changed when the function returns."
-  [^Reader reader offset]
-  (let [next-char (reader-peek reader offset)]
+   character. Reader will not be changed when the function returns."
+  [^Reader reader]
+  (let [next-char (reader-peek reader)]
     (== next-char (int \newline))))
 
 (defn- crlf-at-reader-pos?
   "Given a reader, returns true if the reader is currently pointing at an \r\n
-   character sequence, or there is such character at its current position + offset.
-   Reader will not be changed when the function returns."
-  [^Reader reader offset]
-  (.mark reader (+ offset 2))
-  (.skip reader offset)
+   character sequence. Reader will not be changed when the function returns."
+  [^Reader reader]
+  (.mark reader 2)
   (let [result (and (== (int \return) (.read reader))
                     (== (int \newline) (.read reader)))]
     (.reset reader)
@@ -46,12 +42,10 @@ and quotes. The main functions are parse-csv and write-csv."}
 
 (defn- custom-eol-at-reader-pos?
   "Given a reader and an end-of-line string, returns true if the reader is
-   currently pointing at an instance of the end-of-line string, or there is such
-   a sequence at its current position + offset.Reader will notbe changed when 
-   the function returns."
-  [^Reader reader ^String end-of-line offset]
-  (.mark reader (+ offset 16 ))
-  (.skip reader offset)
+   currently pointing at an instance of the end-of-line string. Reader will not
+   be changed when the function returns."
+  [^Reader reader ^String end-of-line]
+  (.mark reader 16)
   (let [result (loop [curr-rdr-char (int (.read reader))
                       eol-pos (int 0)]
                  (if (>= eol-pos (int (count end-of-line)))
@@ -69,21 +63,14 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a reader and optionally an end-of-line string, returns true if the
    reader is currently pointing at an end-of-line (LF/CRLF/the end-of-line arg).
    Reader will not be changed when the function returns. Note that if the
-   EOL is specified, it will not check for LF/CRLF.
-   Optionally also an offset can be specified: in this case the check starts from
-   current position + offset."
+   EOL is specified, it will not check for LF/CRLF."
   ([^Reader reader]
-     (or (lf-at-reader-pos? reader 0)
-         (crlf-at-reader-pos? reader 0)))
+     (or (lf-at-reader-pos? reader)
+         (crlf-at-reader-pos? reader)))
   ([^Reader reader end-of-line]
      (if end-of-line
-       (custom-eol-at-reader-pos? reader end-of-line 0)
-       (eol-at-reader-pos? reader)))
-  ([^Reader reader end-of-line offset]
-     (if end-of-line
-       (custom-eol-at-reader-pos? reader end-of-line offset)
-       (or (lf-at-reader-pos? reader offset)
-           (crlf-at-reader-pos? reader offset)))))
+       (custom-eol-at-reader-pos? reader end-of-line)
+       (eol-at-reader-pos? reader))))
 
 (defn- skip-past-eol
   "Given a reader that is pointing at an end-of-line
@@ -163,39 +150,6 @@ and quotes. The main functions are parse-csv and write-csv."}
             (do (.appendCodePoint field-str (.read reader))
                 (recur (reader-peek reader)))))))
 
-(defn- read-quoted-field-permissive
-  "Given a reader that is queued up to the beginning of a quoted field,
-   reads the field and returns it as a string. The reader will be left at the
-   first character past the end of the field. Extra quotes between the opening
-   and closing one, will be part of the value to be read."
-  [^Reader reader ^long delimiter ^long quote-char end-of-line]
-  (let [field-str (StringBuilder.)]
-    (.skip reader 1) ;; Discard the quote that starts the field.
-    (loop [c (reader-peek reader)]
-      (cond (== c -1)
-              (.toString field-str)
-            ;; If we see two quote chars in a row, only add one of them to the
-            ;; output, skip both of the characters, and continue.
-            (escaped-quote-at-reader-pos? reader quote-char)
-            (do (.appendCodePoint field-str quote-char)
-                (.skip reader 2)
-                (recur (reader-peek reader)))
-            ;; Otherwise, if we see a single quote char, this field has ended, iff
-            ;; that character is followed by a separtor, a new-line or EOF.
-            ;; Skip past the ending quote and return the field.
-            (== c quote-char)
-                (let [next-char (reader-peek reader 2)]
-                     (if (or (== next-char delimiter) (== next-char -1) (eol-at-reader-pos? reader end-of-line 1))
-                           (do (.skip reader 1) ;; Skip past that quote character.
-                               (.toString field-str))
-                           (do (.appendCodePoint field-str (.read reader))
-                               (recur (reader-peek reader))   )))
-            :else
-            (do (.appendCodePoint field-str (.read reader))
-                (recur (reader-peek reader)))))))
-
-
-
 (defn- parse-csv-line
   "Takes a Reader as input and returns the first row of the CSV file,
    parsed into cells (an array of strings). The reader passed in will be
@@ -218,13 +172,9 @@ and quotes. The main functions are parse-csv and write-csv."}
              (eol-at-reader-pos? csv-reader end-of-line)
              (do (skip-past-eol csv-reader end-of-line)
                  (persistent! (conj! fields last-field)))
-             (and strict (== look-ahead (int quote-char)))
-             (recur fields
-                    (read-quoted-field csv-reader delimiter quote-char strict)
-                    (reader-peek csv-reader))
              (== look-ahead (int quote-char))
              (recur fields
-                    (read-quoted-field-permissive csv-reader delimiter quote-char end-of-line)
+                    (read-quoted-field csv-reader delimiter quote-char strict)
                     (reader-peek csv-reader))
              :else
              (recur fields
