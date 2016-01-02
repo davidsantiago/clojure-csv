@@ -28,9 +28,8 @@
   (is (= [["quoted", "\",\"", "comma"]]
          (parse-csv "quoted,\"\"\",\"\"\",comma")))
   (is (= [["Hello"]] (parse-csv "\"Hello\"")))
-  (is (= [["Hello\" \"Hello2"]] (parse-csv "\"Hello\" \"Hello2\"")))
-  (is (= [["Hello\" \"Hello2\" \"Hello3"]] (parse-csv "\"Hello\" \"Hello2\" \"Hello3\"")))
-  (is (= [["Hello\" \"Hello2\" \"Hello3\" \"Hello4"]] (parse-csv "\"Hello\" \"Hello2\" \"Hello3\" \"Hello4\"")))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\""))))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\" \"Hello3\""))))
   (is (= [["Hello"]] (parse-csv "\"Hello"))))
 
 (deftest newlines
