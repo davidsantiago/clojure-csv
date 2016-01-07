@@ -176,7 +176,7 @@ and quotes. The main functions are parse-csv and write-csv."}
              (recur fields
                     (read-quoted-field csv-reader delimiter quote-char strict)
                     (reader-peek csv-reader))
-             (= "" last-field)
+             (= "" last-field) ;; Must be at beginning or just after comma.
              (recur fields
                     (read-unquoted-field csv-reader delimiter quote-char
                                          strict end-of-line)
