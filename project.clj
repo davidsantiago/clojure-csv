@@ -1,4 +1,4 @@
-(defproject clojure-csv "2.0.2"
+(defproject clojure-csv "2.0.3-SNAPSHOT"
   :description "A simple library to read and write CSV files."
   :dependencies [[org.clojure/clojure "1.3.0"]]
   :plugins [[perforate "0.3.2"]]
