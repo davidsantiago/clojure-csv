@@ -30,6 +30,9 @@
   (is (= [["Hello"]] (parse-csv "\"Hello\"")))
   (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\""))))
   (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\" \"Hello3\""))))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\",\"Hello2\" \"Hello3\""))))
+  (is (= [["Hello\"Hello2"]] (parse-csv "\"Hello\"\"Hello2\"")))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\"Hello2"))))
   (is (= [["Hello"]] (parse-csv "\"Hello"))))
 
 (deftest newlines
