@@ -18,13 +18,22 @@
                                 (reader (.toCharArray "First,Second"))))))
 
 (deftest quoting
+  (is (= [[""]] (parse-csv "\"")))
+  (is (= [["\""]] (parse-csv "\"\"\"")))
   (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
   (is (= [["Before", "", "After"]] (parse-csv "Before,\"\",After")))
   (is (= [["", "start&end", ""]] (parse-csv "\"\",\"start&end\",\"\"")))
   (is (= [[",", "\"", ",,", ",,,"]]
          (parse-csv "\",\",\"\"\"\",\",,\",\",,,\"")))
   (is (= [["quoted", "\",\"", "comma"]]
-         (parse-csv "quoted,\"\"\",\"\"\",comma"))))
+         (parse-csv "quoted,\"\"\",\"\"\",comma")))
+  (is (= [["Hello"]] (parse-csv "\"Hello\"")))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\""))))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\" \"Hello3\""))))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\",\"Hello2\" \"Hello3\""))))
+  (is (= [["Hello\"Hello2"]] (parse-csv "\"Hello\"\"Hello2\"")))
+  (is (thrown? Exception (dorun (parse-csv "\"Hello\"Hello2"))))
+  (is (= [["Hello"]] (parse-csv "\"Hello"))))
 
 (deftest newlines
   (is (= [["test1","test2"] ["test3","test4"]]
@@ -116,5 +125,7 @@
   ;; Custom EOL can still be quoted into a field.
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,\"b\r\"\rc,d"
                                             :end-of-line "\r")))
+  (is (= [["a" "bHELLO"] ["c" "d"]] (parse-csv "a,\"bHELLO\"HELLOc,d"
+                                            :end-of-line "HELLO")))
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
                                             :end-of-line "\r" :quote-char \|))))

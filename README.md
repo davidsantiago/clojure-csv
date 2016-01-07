@@ -1,13 +1,13 @@
 Clojure-CSV
 ===========
-Clojure-CSV is a small library for reading and writing CSV files. The main 
-features: 
+Clojure-CSV is a small library for reading and writing CSV files. The main
+features:
 
-* Both common line terminators are accepted. 
-* Quoting and escaping inside CSV fields are handled correctly (specifically 
-  commas and double-quote characters). 
-* Unescaped newlines embedded in CSV fields are supported when 
-  parsing. 
+* Both common line terminators are accepted.
+* Quoting and escaping inside CSV fields are handled correctly (specifically
+  commas and double-quote characters).
+* Unescaped newlines embedded in CSV fields are supported when
+  parsing.
 * Reading is lazy.
 * More permissive than RFC 4180, although there are some optional strictness
   checks. (Send me any bugs you find, or any correctness checks you think
@@ -15,17 +15,19 @@ features:
 
 This library aims to be as permissive as possible with respect to deviation
 from the standard, as long as the intention is clear. The only correctness
-checks made are those that cannot be made after parsing is done. For example,
+checks made are those on the actual (minimal) CSV structure. For example,
 some people think it should be an error when lines in the CSV have a
 different number of fields -- you should check this yourself. However, it is
 not possible, after parsing, to tell if the input ended before the closing
-quote of a field; if you care, it will be signaled to you.
+quote of a field; if you care, it can be signaled to you.
 
 The API has changed in the 2.0 series; see below for details.
 
 Recent Updates
 --------------
 
+* Updated library to 2.0.2, with a bug fix for malformed input by
+  [attil-io](https://github.com/attil-io).
 * Updated library to 2.0.1, which adds the :force-quote option to write-csv.
   Big thanks to [Barrie McGuire](https://github.com/pleasle) for the contribution.
 * Updated library to 2.0.0; essentially identical to 2.0.0-alpha2.
@@ -45,7 +47,7 @@ Recent Updates
 * Added support for changing the character used to start and end quoted fields in
   reading and writing.
 * Updated library to 1.3.1.
-* Fixed the quoting behavior on write, to properly quote any field with a CR. Thanks to Matt Lehman for this fix. 
+* Fixed the quoting behavior on write, to properly quote any field with a CR. Thanks to Matt Lehman for this fix.
 * Updated library to 1.3.0.
 * Now has support for Clojure 1.3.
 * Some speed improvements to take advantage of Clojure 1.3. Nearly twice as fast
@@ -58,8 +60,8 @@ Recent Updates
 * Includes a bug fix for a problem where a non-comma delimiter was causing
   incorrect quoting on write.
 * Included a bug fix to make the presence of a double-quote in an unquoted field
-  parse better in non-strict mode. Specifically, if a CSV field is not quoted 
-  but has \" characters, they are read as \" with no further processing. Does 
+  parse better in non-strict mode. Specifically, if a CSV field is not quoted
+  but has \" characters, they are read as \" with no further processing. Does
   not start quoting.
 * Reorganized namespaces to fit better with my perception of Clojure standards.
   Specifically, the main namespace is now clojure-csv.core.
@@ -70,56 +72,56 @@ Recent Updates
 
 Obtaining
 ---------
-If you are using Leiningen, you can simply add 
+If you are using Leiningen, you can simply add
 
     [clojure-csv/clojure-csv "2.0.1"]
 
-to your project.clj and download it from Clojars with 
+to your project.clj and download it from Clojars with
 
     lein deps
 
 Use
 ---
-The `clojure-csv.core` namespace exposes two functions to the user: 
+The `clojure-csv.core` namespace exposes two functions to the user:
 
 ### parse-csv
-Takes a CSV as a char sequence or string, and returns a lazy sequence of 
-vectors of strings; each vector corresponds to a row, and each string is 
+Takes a CSV as a char sequence or string, and returns a lazy sequence of
+vectors of strings; each vector corresponds to a row, and each string is
 one field from that row. Be careful to ensure that if you read lazily from
 a file or some other resource that it remains open when the sequence is
 consumed.
 
 Takes the following keyword arguments to change parsing behavior:
-#### :delimiter 
+#### :delimiter
 A character that contains the cell separator for each column in a row.
 ##### Default value: \\,
-#### :end-of-line 
+#### :end-of-line
 A string containing the end-of-line character for
 reading CSV files. If this setting is nil then \\n and \\r\\n are both
 accepted.  
-##### Default value: nil 
-#### :quote-char 
-A character that is used to begin and end a quoted cell. 
-##### Default value: \" 
-#### :strict 
+##### Default value: nil
+#### :quote-char
+A character that is used to begin and end a quoted cell.
+##### Default value: \"
+#### :strict
 If this variable is true, the parser will throw an exception
 on parse errors that are recoverable but not to spec or otherwise
 nonsensical.  
 ##### Default value: false
 
 ### write-csv
-Takes a sequence of sequences of strings, basically a table of strings, 
+Takes a sequence of sequences of strings, basically a table of strings,
 and renders that table into a string in CSV format. You can easily
-call this function repeatedly row-by-row and concatenate the results yourself. 
+call this function repeatedly row-by-row and concatenate the results yourself.
 
 Takes the following keyword arguments to change the written file:
-#### :delimiter 
+#### :delimiter
 A character that contains the cell separator for each column in a row.  
 ##### Default value: \\,
-#### :end-of-line 
+#### :end-of-line
 A string containing the end-of-line character for writing CSV files.  
 ##### Default value: \\n
-#### :quote-char 
+#### :quote-char
 A character that is used to begin and end a quoted cell.
 ##### Default value: \"
 #### :force-quote
@@ -173,7 +175,7 @@ dynamic vars are removed.
 * The end-of-line option can now be set during parsing. If end-of-line is
   set to something other than nil, parse-csv will treat \n and \r\n as
   any other character and only use the string given in end-of-line as the
-  newline. 
+  newline.
 
 Bugs
 ----
@@ -187,4 +189,4 @@ Contributors
 
 License
 --------
-Eclipse Public License 
+Eclipse Public License

@@ -176,11 +176,13 @@ and quotes. The main functions are parse-csv and write-csv."}
              (recur fields
                     (read-quoted-field csv-reader delimiter quote-char strict)
                     (reader-peek csv-reader))
-             :else
+             (= "" last-field) ;; Must be at beginning or just after comma.
              (recur fields
                     (read-unquoted-field csv-reader delimiter quote-char
                                          strict end-of-line)
-                    (reader-peek csv-reader))))))
+                    (reader-peek csv-reader))
+             :else
+             (throw (Exception. (str "Unexpected character found: " look-ahead)))))))
 
 (defn- parse-csv-with-options
   ([csv-reader {:keys [delimiter quote-char strict end-of-line]}]
