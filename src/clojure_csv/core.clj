@@ -114,9 +114,9 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a reader, returns true if it is currently pointing at a character that
    is the same as quote-char. The reader position will not be changed when the
    function returns."
-  [^Reader reader ^long quote-char]
+  [^Reader reader ^long quote-char ^long escape-char]
   (.mark reader 2)
-  (let [result (and (== quote-char (.read reader))
+  (let [result (and (== escape-char (.read reader))
                     (== quote-char (.read reader)))]
     (.reset reader)
     result))
@@ -125,7 +125,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a reader that is queued up to the beginning of a quoted field,
    reads the field and returns it as a string. The reader will be left at the
    first character past the end of the field."
-  [^Reader reader ^long delimiter ^long quote-char strict]
+  [^Reader reader delimiter quote-char escape-char strict]
   (let [field-str (StringBuilder.)]
     (.skip reader 1) ;; Discard the quote that starts the field.
     (loop [c (reader-peek reader)]
@@ -137,7 +137,7 @@ and quotes. The main functions are parse-csv and write-csv."}
               (.toString field-str))
             ;; If we see two quote chars in a row, only add one of them to the
             ;; output, skip both of the characters, and continue.
-            (escaped-quote-at-reader-pos? reader quote-char)
+            (escaped-quote-at-reader-pos? reader quote-char escape-char)
             (do (.appendCodePoint field-str quote-char)
                 (.skip reader 2)
                 (recur (reader-peek reader)))
@@ -154,47 +154,48 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Takes a Reader as input and returns the first row of the CSV file,
    parsed into cells (an array of strings). The reader passed in will be
    positioned for the start of the next line."
-  [^Reader csv-reader delimiter quote-char strict end-of-line]
+  [^Reader csv-reader {:keys [delimiter quote-char escape-char strict end-of-line]}]
    ;; We build the last-field variable, and then add it to fields when we
    ;; encounter some event (delimiter/eol/eof) that signals the end of
    ;; the field. This lets us correctly handle input with empty fields, like
    ;; ",,,".
    (let [delimiter (int delimiter)
-         quote-char (int quote-char)]
+         quote-char (int quote-char)
+         escape-char (int escape-char)]
      (loop [fields (transient []) ;; Will return this as the vector of fields.
             last-field ""
             look-ahead (reader-peek csv-reader)]
        (cond (== -1 look-ahead)
              (persistent! (conj! fields last-field))
+
              (== look-ahead (int delimiter))
              (do (.skip csv-reader 1)
                  (recur (conj! fields last-field) "" (reader-peek csv-reader)))
+
              (eol-at-reader-pos? csv-reader end-of-line)
              (do (skip-past-eol csv-reader end-of-line)
                  (persistent! (conj! fields last-field)))
+
              (== look-ahead (int quote-char))
              (recur fields
-                    (read-quoted-field csv-reader delimiter quote-char strict)
+                    (read-quoted-field csv-reader delimiter quote-char escape-char strict)
                     (reader-peek csv-reader))
+
              (= "" last-field) ;; Must be at beginning or just after comma.
              (recur fields
                     (read-unquoted-field csv-reader delimiter quote-char
                                          strict end-of-line)
                     (reader-peek csv-reader))
+
              :else
              (throw (Exception. (str "Unexpected character found: " look-ahead)))))))
 
 (defn- parse-csv-with-options
-  ([csv-reader {:keys [delimiter quote-char strict end-of-line]}]
-     (parse-csv-with-options csv-reader delimiter quote-char
-       strict end-of-line))
-  ([csv-reader delimiter quote-char strict end-of-line]
-      (lazy-seq
-       (when (not (== -1 (reader-peek csv-reader)))
-         (let [row (parse-csv-line csv-reader delimiter quote-char
-                                   strict end-of-line)]
-           (cons row (parse-csv-with-options csv-reader delimiter quote-char
-                       strict end-of-line)))))))
+  [csv-reader opts]
+  (lazy-seq
+    (when (not (== -1 (reader-peek csv-reader)))
+      (cons (parse-csv-line csv-reader opts)
+            (parse-csv-with-options csv-reader opts)))))
 
 (defn parse-csv
   "Takes a CSV as a string or Reader and returns a seq of the parsed CSV rows,
@@ -209,6 +210,8 @@ and quotes. The main functions are parse-csv and write-csv."}
                        \\n and \\r\\n are both accepted.  Default value: nil
         :quote-char - A character that is used to begin and end a quoted cell.
                       Default value: \\\"
+        :escape-char - A character that is used to escape quoting.
+                     Default value: :quote-char
         :strict - If this variable is true, the parser will throw an
                   exception on parse errors that are recoverable but
                   not to spec or otherwise nonsensical.  Default value: false"
@@ -216,7 +219,8 @@ and quotes. The main functions are parse-csv and write-csv."}
      (let [csv-reader (if (string? csv) (StringReader. csv) csv)]
        (parse-csv-with-options csv-reader (merge {:strict false
                                                   :delimiter \,
-                                                  :quote-char \"}
+                                                  :quote-char \"
+                                                  :escape-char (or (:quote-char opts) \")}
                                                  opts)))))
 
 ;;
@@ -236,16 +240,16 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a character, returns the escaped version, whether that is the same
    as the original character or a replacement. The return is a string or a
    character, but it all gets passed into str anyways."
-  [chr delimiter quote-char]
-  (if (= quote-char chr) (str quote-char quote-char) chr))
+  [chr delimiter quote-char escape-char]
+  (if (= quote-char chr) (str escape-char quote-char) chr))
 
 (defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
-  [cell delimiter quote-char force-quote]
+  [cell delimiter quote-char escape-char force-quote]
   (if (or force-quote (needs-quote? cell delimiter quote-char))
     (str quote-char
-         (apply str (map #(escape % delimiter quote-char)
+         (apply str (map #(escape % delimiter quote-char escape-char)
                                     cell))
          quote-char)
     cell))
@@ -253,10 +257,11 @@ and quotes. The main functions are parse-csv and write-csv."}
 (defn- quote-and-escape-row
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
-  [row delimiter quote-char force-quote]
+  [row delimiter quote-char escape-char force-quote]
   (string/join delimiter (map #(quote-and-escape %
                                                  delimiter
                                                  quote-char
+                                                 escape-char
                                                  force-quote)
                               row)))
 
@@ -271,15 +276,18 @@ and quotes. The main functions are parse-csv and write-csv."}
                       for writing CSV files.  Default value: \\n
        :quote-char - A character that is used to begin and end a quoted cell.
                      Default value: \\\"
+       :escape-char - A character that is used to escape quoting.
+                     Default value: :quote-char
        :force-quote - Forces every cell to be quoted (useful for Excel interop)
                       Default value: false"
-  [table & {:keys [delimiter quote-char end-of-line force-quote]
+  [table & {:keys [delimiter quote-char escape-char end-of-line force-quote]
             :or {delimiter \, quote-char \" end-of-line "\n"
                  force-quote false}}]
   (loop [csv-string (StringBuilder.)
          quoted-table (map #(quote-and-escape-row %
                                                   (str delimiter)
                                                   quote-char
+                                                  (or escape-char quote-char)
                                                   force-quote)
                            table)]
     (if (empty? quoted-table)

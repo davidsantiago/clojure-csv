@@ -93,6 +93,24 @@
   (is (= "a,b\"c,d\n"
          (write-csv [["a", "b\"c", "d"]] :quote-char \|))))
 
+(deftest write-alternate-escape-char
+  (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]])))
+  (is (= "quoted:,\"escaped\"\"quotes\"\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]] :escape-char \")))
+  (is (= "quoted:,\"escaped\\\"quotes\\\"\"\n"
+         (write-csv [["quoted:" "escaped\"quotes\""]] :escape-char \\))))
+
+(deftest read-alternate-escape-char
+  (is (= [["quoted:" "escaped\"quotes\""]]
+         (parse-csv "quoted:,\"escaped\"\"quotes\"\"\"\n")))
+  (is (= [["quoted:" "escaped\"quotes\""]]
+         (parse-csv "quoted:,\"escaped\"\"quotes\"\"\"\n" :escape-char \")))
+  (is (= [["quoted:" "escaped\"quotes\""]]
+         (parse-csv "quoted:,\"escaped\\\"quotes\\\"\"\n" :escape-char \\)))
+  (is (= [["\"foo\"" "\"bar\""]]
+         (parse-csv "\"\\\"foo\\\"\",\"\\\"bar\\\"\"\n" :escape-char \\))))
+
 (deftest strictness
   (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
   (is (thrown? Exception (dorun (parse-csv "a,b,c,d\"e" :strict true))))
