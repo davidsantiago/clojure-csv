@@ -1,5 +1,7 @@
 (defproject clojure-csv "2.0.2"
   :description "A simple library to read and write CSV files."
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.3.0"]]
   :plugins [[perforate "0.3.2"]]
   :jvm-opts ["-Xmx1g"]
