@@ -74,7 +74,7 @@ Obtaining
 ---------
 If you are using Leiningen, you can simply add
 
-    [clojure-csv/clojure-csv "2.0.1"]
+    [clojure-csv/clojure-csv "2.0.2"]
 
 to your project.clj and download it from Clojars with
 
