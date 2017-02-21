@@ -128,4 +128,6 @@
   (is (= [["a" "bHELLO"] ["c" "d"]] (parse-csv "a,\"bHELLO\"HELLOc,d"
                                             :end-of-line "HELLO")))
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
-                                            :end-of-line "\r" :quote-char \|))))
+                                            :end-of-line "\r" :quote-char \|)))
+  ;; Edge-case: If the EOL begins with the same character as the delimiter
+  (is (= [["a" "b"] ["c" "d"]] (parse-csv "a^b^+^c^d" :delimiter \^ :end-of-line "^+^"))))
