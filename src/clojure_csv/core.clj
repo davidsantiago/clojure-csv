@@ -166,12 +166,12 @@ and quotes. The main functions are parse-csv and write-csv."}
             look-ahead (reader-peek csv-reader)]
        (cond (== -1 look-ahead)
              (persistent! (conj! fields last-field))
-             (== look-ahead (int delimiter))
-             (do (.skip csv-reader 1)
-                 (recur (conj! fields last-field) "" (reader-peek csv-reader)))
              (eol-at-reader-pos? csv-reader end-of-line)
              (do (skip-past-eol csv-reader end-of-line)
                  (persistent! (conj! fields last-field)))
+             (== look-ahead (int delimiter))
+             (do (.skip csv-reader 1)
+                 (recur (conj! fields last-field) "" (reader-peek csv-reader)))
              (== look-ahead (int quote-char))
              (recur fields
                     (read-quoted-field csv-reader delimiter quote-char strict)
