@@ -20,6 +20,7 @@
 (deftest quoting
   (is (= [[""]] (parse-csv "\"")))
   (is (= [["\""]] (parse-csv "\"\"\"")))
+  (is (= [["nested", "\"quote\""]] (parse-csv "nested,\"\\\"quote\\\"\"" )))
   (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
   (is (= [["Before", "", "After"]] (parse-csv "Before,\"\",After")))
   (is (= [["", "start&end", ""]] (parse-csv "\"\",\"start&end\",\"\"")))
