@@ -121,6 +121,9 @@ and quotes. The main functions are parse-csv and write-csv."}
     (.reset reader)
     result))
 
+
+(def ^:private escape-character (int \\))
+
 (defn- read-quoted-field
   "Given a reader that is queued up to the beginning of a quoted field,
    reads the field and returns it as a string. The reader will be left at the
@@ -141,6 +144,12 @@ and quotes. The main functions are parse-csv and write-csv."}
             (do (.appendCodePoint field-str quote-char)
                 (.skip reader 2)
                 (recur (reader-peek reader)))
+            ;; If we see an escaping character, skip it and add the character
+            (= escape-character c)
+            (do
+              (.skip reader 1)
+              (.appendCodePoint field-str (.read reader))
+              (recur (reader-peek reader)))
             ;; Otherwise, if we see a single quote char, this field has ended.
             ;; Skip past the ending quote and return the field.
             (== c quote-char)
