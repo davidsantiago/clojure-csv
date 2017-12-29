@@ -42,7 +42,8 @@ Recent Updates
   parse-csv is now a string or Reader, and a new API based on keyword
   args instead of rebinding vars.
 
-###Previously...
+### Previously...
+
 * Updated library to 1.3.2.
 * Added support for changing the character used to start and end quoted fields in
   reading and writing.
