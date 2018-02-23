@@ -17,8 +17,12 @@
                                                      nil)))
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\nabc")
                                                      nil)))
-  (is (= false (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\tabc")
+  (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\tabc")
+                                                     nil)))
+
+  (is (= false (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\t\tabc")
                                                       nil)))
+
   ;; Testing for user-specified EOLs
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "abc")
                                                      "abc")))
