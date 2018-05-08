@@ -239,7 +239,7 @@ and quotes. The main functions are parse-csv and write-csv."}
   [chr quote-char]
   (if (= quote-char chr) (str quote-char quote-char) chr))
 
-(defn quote-and-escape
+(defn- quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
   [cell delimiter quote-char force-quote]
@@ -249,7 +249,7 @@ and quotes. The main functions are parse-csv and write-csv."}
          quote-char)
     cell))
 
-(defn- quote-and-escape-row
+(defn quote-and-escape-row
   "Given a row (vector of strings), quotes and escapes any cells where that
    is necessary and then joins all the text into a string for that entire row."
   [row delimiter quote-char force-quote]
