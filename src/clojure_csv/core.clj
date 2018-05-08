@@ -236,17 +236,16 @@ and quotes. The main functions are parse-csv and write-csv."}
   "Given a character, returns the escaped version, whether that is the same
    as the original character or a replacement. The return is a string or a
    character, but it all gets passed into str anyways."
-  [chr delimiter quote-char]
+  [chr quote-char]
   (if (= quote-char chr) (str quote-char quote-char) chr))
 
-(defn- quote-and-escape
+(defn quote-and-escape
   "Given a string (cell), returns a new string that has any necessary quoting
    and escaping."
   [cell delimiter quote-char force-quote]
   (if (or force-quote (needs-quote? cell delimiter quote-char))
     (str quote-char
-         (apply str (map #(escape % delimiter quote-char)
-                                    cell))
+         (apply str (map #(escape % quote-char) cell))
          quote-char)
     cell))
 
