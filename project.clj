@@ -1,9 +1,11 @@
 (defproject clojure-csv "2.0.3-SNAPSHOT"
   :description "A simple library to read and write CSV files."
-  :dependencies [[org.clojure/clojure "1.3.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [clj-time "0.15.0"]]
   :plugins [[perforate "0.3.2"]]
   :jvm-opts ["-Xmx1g"]
   :profiles {:current {:source-paths ["src/"]}
+             :clj1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :clj1.4 {:dependencies [[org.clojure/clojure "1.4.0-beta5"]]}
              :clj1.3 {:dependencies [[org.clojure/clojure "1.3.0"]]}
              :csv1.3 {:dependencies [[clojure-csv "1.3.0"]]}
@@ -15,5 +17,5 @@
                               :profiles [:clj1.3 :csv1.3]
                               :namespaces [csv.benchmarks.core]}
                              {:name :current
-                              :profiles [:clj1.4 :current]
+                              :profiles [:clj1.8 :current]
                               :namespaces [csv.benchmarks.core]}]})

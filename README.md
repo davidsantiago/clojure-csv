@@ -26,6 +26,12 @@ The API has changed in the 2.0 series; see below for details.
 Recent Updates
 --------------
 
+* Updated to `2.0.3-SNAPSHOT`, with
+1. Optional recognition of numbers in data;
+2. Optional recognition of dates/times in data;
+3. Optional recognition of first row as field names;
+4. Option to supply field names.
+* Now has support for Clojure 1.8.
 * Updated library to 2.0.2, with a bug fix for malformed input by
   [attil-io](https://github.com/attil-io).
 * Updated library to 2.0.1, which adds the :force-quote option to write-csv.
@@ -52,7 +58,7 @@ Recent Updates
 * Now has support for Clojure 1.3.
 * Some speed improvements to take advantage of Clojure 1.3. Nearly twice as fast
   in my tests.
-* Updated library to 1.2.4.  
+* Updated library to 1.2.4.
 * Added the char-seq multimethod, which provides a variety of implementations
   for easily creating the char seqs that parse-csv uses on input from various
   similar objects. Big thanks to [Slawek Gwizdowski](https://github.com/i0cus)
@@ -98,7 +104,7 @@ A character that contains the cell separator for each column in a row.
 #### :end-of-line
 A string containing the end-of-line character for
 reading CSV files. If this setting is nil then \\n and \\r\\n are both
-accepted.  
+accepted.
 ##### Default value: nil
 #### :quote-char
 A character that is used to begin and end a quoted cell.
@@ -106,8 +112,27 @@ A character that is used to begin and end a quoted cell.
 #### :strict
 If this variable is true, the parser will throw an exception
 on parse errors that are recoverable but not to spec or otherwise
-nonsensical.  
+nonsensical.
 ##### Default value: false
+#### :numbers
+Optional; if non `nil`, fields which are numbers will be returned as numbers,
+not strings.
+#### :date-format
+Optional; if a valid value as specified below, fields which are dates/times
+will be returned as `org.joda.time.DateTime` objects, not strings.
+
+A valid value is one of:
+  1. A string in the format understood by `clj-time.formatters/formatter`, or
+  2. A keyword representing one of `clj-time.formatters` built-in formatters,
+  3. A custom formatter as constructed by `clj-time.formatters/formatter`"
+##### Default value: nil
+#### :field-names
+Optional;
+  1. if `true`, the first row of the input will be treated as field names (and
+read as keywords);
+  2. if a list or vector, the value will be used as field names.
+In either case, rows will be returned as `map`s, not `list`s.
+##### Default value: nil
 
 ### write-csv
 Takes a sequence of sequences of strings, basically a table of strings,
@@ -116,10 +141,10 @@ call this function repeatedly row-by-row and concatenate the results yourself.
 
 Takes the following keyword arguments to change the written file:
 #### :delimiter
-A character that contains the cell separator for each column in a row.  
+A character that contains the cell separator for each column in a row.
 ##### Default value: \\,
 #### :end-of-line
-A string containing the end-of-line character for writing CSV files.  
+A string containing the end-of-line character for writing CSV files.
 ##### Default value: \\n
 #### :quote-char
 A character that is used to begin and end a quoted cell.

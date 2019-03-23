@@ -4,7 +4,8 @@
 It correctly handles common CSV edge-cases, such as embedded newlines, commas,
 and quotes. The main functions are parse-csv and write-csv."}
   clojure-csv.core
-  (:require [clojure.string :as string])
+  (:require [clojure.string :as string]
+            [clojure-csv.data-cleaning :refer [dates-as-dates numbers-as-numbers]])
   (:import [java.io Reader StringReader]))
 
 
@@ -185,16 +186,24 @@ and quotes. The main functions are parse-csv and write-csv."}
              (throw (Exception. (str "Unexpected character found: " look-ahead)))))))
 
 (defn- parse-csv-with-options
-  ([csv-reader {:keys [delimiter quote-char strict end-of-line]}]
+  ([csv-reader {:keys [delimiter quote-char strict end-of-line date-format numbers field-names]}]
+   (let [fields (cond
+                 (true? field-names)
+                 (map keyword (parse-csv-line csv-reader delimiter quote-char
+                                   strict end-of-line))
+                 (or (list? field-names) (vector? field-names)) field-names)]
      (parse-csv-with-options csv-reader delimiter quote-char
-       strict end-of-line))
-  ([csv-reader delimiter quote-char strict end-of-line]
+       strict end-of-line date-format numbers fields)))
+  ([csv-reader delimiter quote-char strict end-of-line date-format numbers fields]
       (lazy-seq
        (when (not (== -1 (reader-peek csv-reader)))
-         (let [row (parse-csv-line csv-reader delimiter quote-char
-                                   strict end-of-line)]
+         (let [raw (parse-csv-line csv-reader delimiter quote-char
+                                   strict end-of-line)
+               with-numbers (if numbers (numbers-as-numbers raw) raw)
+               with-dates (if date-format (dates-as-dates numbers date-format) with-numbers)
+               row (if fields (apply hash-map (interleave fields with-dates)) with-dates)]
            (cons row (parse-csv-with-options csv-reader delimiter quote-char
-                       strict end-of-line)))))))
+                       strict end-of-line date-format numbers fields)))))))
 
 (defn parse-csv
   "Takes a CSV as a string or Reader and returns a seq of the parsed CSV rows,
@@ -211,7 +220,17 @@ and quotes. The main functions are parse-csv and write-csv."}
                       Default value: \\\"
         :strict - If this variable is true, the parser will throw an
                   exception on parse errors that are recoverable but
-                  not to spec or otherwise nonsensical.  Default value: false"
+                  not to spec or otherwise nonsensical.  Default value: false
+        :date-format - if provided, and value is a string, keyword or `clj-time`
+                  formatter, recognise dates having the specified format and
+                  return them as `org.joda.time.DateTime` objects. Default value:
+                  nil
+        :numbers - if provided and value is non-nil, recognise numbers (integers,
+                  floats and rationals, but TODO: not yet bignums) and return them
+                  as numbers.
+        :field-names - if provided and value is true, treats the first row as
+                  field names; if provided and value is a sequence, treats that sequence as
+                  field names. In either case returns a list of maps, not lists."
   ([csv & {:as opts}]
      (let [csv-reader (if (string? csv) (StringReader. csv) csv)]
        (parse-csv-with-options csv-reader (merge {:strict false
