@@ -1,7 +1,7 @@
 (ns
     ^{:author "Simon Brooke",
-      :doc "Recognise numbers as numbers, and (#TODO)
-      dates/times as dates times, etc"}
+      :doc "Recognise numbers as numbers, and
+      dates/times as dates/times"}
   clojure-csv.data-cleaning
   (:require [clj-time.core :as t]
             [clj-time.format :as f]))

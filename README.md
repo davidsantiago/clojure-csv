@@ -31,6 +31,7 @@ Recent Updates
 2. Optional recognition of dates/times in data;
 3. Optional recognition of first row as field names;
 4. Option to supply field names.
+* Now has support for Clojure 1.8.
 * Updated library to 2.0.2, with a bug fix for malformed input by
   [attil-io](https://github.com/attil-io).
 * Updated library to 2.0.1, which adds the :force-quote option to write-csv.
