@@ -129,3 +129,41 @@
                                             :end-of-line "HELLO")))
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
                                             :end-of-line "\r" :quote-char \|))))
+
+(deftest data-cleansing
+  (let [data "Name;MP;Area;County;Electorate;CON;LAB;LIB;UKIP;Green;NAT;MIN;OTH
+        Aldershot;Leo Docherty;12;Hampshire;76205;26955;15477;3637;1796;1090;0;0;0
+        Aldridge-Brownhills;Wendy Morton;7;Black Country;60363;26317;12010;1343;0;0;0;0;565
+        Altrincham and Sale West;Graham Brady;4;Central Manchester;73220;26933;20507;4051;0;1000;0;0;299
+        Amber Valley;Nigel Mills;8;Derbyshire;68065;25905;17605;1100;0;650;0;0;551
+        Arundel and South Downs;Nick Herbert;12;West Sussex;80766;37573;13690;4783;1668;2542;0;0;0
+        Ashfield;Gloria De Piero;8;Nottinghamshire;78099;20844;21285;969;1885;398;0;4612;0
+        Ashford;Damian Green;12;Kent;87396;35318;17840;3101;2218;1402;0;0;0"]
+    (testing "number recognition"
+      (let [expected "76205"
+            actual (nth (nth (parse-csv data :delimiter \;) 1) 4)]
+        (is (= actual expected) "Number recognition off"))
+      (let [expected 76205
+            actual (nth (nth (parse-csv data :delimiter \; :numbers true) 1) 4)]
+        (is (= actual expected) "Number recognition on")))
+    (testing "field names"
+      (let [expected 76205
+            actual (:Electorate (first (parse-csv data
+                                                  :delimiter \;
+                                                  :numbers true
+                                                  :field-names true)))]
+        (is (= actual expected) "Field names from first row"))
+      (let [expected 76205
+            actual (:e (nth (parse-csv data
+                                         :delimiter \;
+                                         :numbers true
+                                         :field-names [:a :b :c :d :e]) 1))]
+        (is (= actual expected) "Field names passed as vector"))
+      (let [expected 60363
+            actual (:e (nth (parse-csv data
+                                         :delimiter \;
+                                         :numbers true
+                                         :field-names '(:a :b :c :d :e)) 2))]
+        (is (= actual expected) "Field names passed as list")))))
+
+

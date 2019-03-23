@@ -8,3 +8,4 @@ target
 .lein-deps-sum
 .lein-repl-history
 benchmarks/data
+*.csv
