@@ -1,0 +1,17 @@
+name: "GHAS"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: ["master"]
+  schedule:
+    - cron: "0 5 * * 1"
+
+jobs:
+  analyze:
+    name: "clj-holmes Analysis"
+    uses: opploans/gha-workflows-ghas/.github/workflows/clj-holmes-analysis.yml@latest
+    secrets: inherit
