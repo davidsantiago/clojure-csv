@@ -11,7 +11,12 @@ on:
     - cron: "0 5 * * 1"
 
 jobs:
-  analyze:
+  clj-holmes_analysis:
     name: "clj-holmes Analysis"
     uses: opploans/gha-workflows-ghas/.github/workflows/clj-holmes-analysis.yml@latest
+    secrets: inherit
+
+  nvd-clojure_analysis:
+    name: "nvd-clojure Analysis"
+    uses: opploans/gha-workflows-ghas/.github/workflows/nvd-clojure-analysis.yml@latest
     secrets: inherit
