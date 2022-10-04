@@ -1,1 +1,1 @@
-/.github/workflows/ghas.yaml @opploans/application_security
+/.github/workflows/ghas-*.yml @opploans/application_security
