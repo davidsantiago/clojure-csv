@@ -2,7 +2,7 @@ name: 'GHAS to Jira Integration'
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '0 * * * *'
 
 jobs:
   ghas_to_jira:
