@@ -1,0 +1,11 @@
+name: 'GHAS to Jira Integration'
+
+on:
+  schedule:
+    - cron: '40 * * * *'
+
+jobs:
+  ghas_to_jira:
+    name: 'Send Security Findings to Jira'
+    uses: opploans/gha-workflows-ghas/.github/workflows/ghas-jira-integration.yml@latest
+    secrets: inherit
